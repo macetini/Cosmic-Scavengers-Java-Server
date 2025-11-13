@@ -5,11 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.core.IMessageBroadcaster;
 import com.cosmic.scavengers.db.UserRepository;
+import com.cosmic.scavengers.db.UserService;
 import com.cosmic.scavengers.engine.GameEngine;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
@@ -23,11 +26,13 @@ public class NettyServer implements Runnable {
 	private final GameEngine engine;
 	private final UserRepository userRepository;
 	private final IMessageBroadcaster broadcaster;
+	private final UserService userService;
 
-	public NettyServer(GameEngine engine, UserRepository userRepository, IMessageBroadcaster broadcaster) {
+	public NettyServer(GameEngine engine, UserRepository userRepository, IMessageBroadcaster broadcaster, UserService userService) {
 		this.engine = engine;
 		this.userRepository = userRepository;
 		this.broadcaster = broadcaster;
+		this.userService = userService;
 	}
 
 	@Override
@@ -37,7 +42,8 @@ public class NettyServer implements Runnable {
 		try {
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-					.childHandler(new NettyServerInitializerHandler(engine, userRepository, broadcaster)); // Placeholder
+					// *** Reference the new, external class here ***
+					.childHandler(new NettyServerInitializerHandler(engine, userRepository, broadcaster, userService));
 
 			b.bind(port).sync().channel().closeFuture().sync();
 			log.info("Netty Server started and listening on port {}", port);
@@ -46,26 +52,6 @@ public class NettyServer implements Runnable {
 		} finally {
 			bossGroup.shutdownGracefully();
 			workerGroup.shutdownGracefully();
-		}
-	}
-
-	// Placeholder class needed for compilation
-	private static class NettyServerInitializerHandler
-			extends io.netty.channel.ChannelInitializer<io.netty.channel.socket.SocketChannel> {
-		private final GameEngine engine;
-		private final UserRepository userRepository;
-		private final IMessageBroadcaster broadcaster;
-
-		public NettyServerInitializerHandler(GameEngine engine, UserRepository userRepository,
-				IMessageBroadcaster broadcaster) {
-			this.engine = engine;
-			this.userRepository = userRepository;
-			this.broadcaster = broadcaster;
-		}
-
-		@Override
-		protected void initChannel(io.netty.channel.socket.SocketChannel ch) throws Exception {
-			// Setup Netty handlers here (e.g., decoders, encoders, GameChannelHandler)
 		}
 	}
 }
