@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+// Defines the package for the generated Java classes
+// This will be used in your Java imports: com.cosmic.scavengers.proto
+option java_package = "com.cosmic.scavengers.proto";
+option java_outer_classname = "GameMessages";
+
+// --- FIXED-POINT REPRESENTATION ---
+// Since Protobuf does not have a native fixed-point type, we represent it
+// as a standard 64-bit integer, and rely on the application logic (Decimal4j) 
+// on both the server (Java) and client (C#) to interpret the scaling factor.
+// This ensures determinism across platforms.
+message FixedPoint {
+    // Stores the scaled integer value (e.g., 1.23 * 10000 = 12300)
+    int64 value = 1; 
+}
+
+// --- 1. CLIENT TO SERVER: Game Command Messages ---
+// Base message for all client commands. Uses a oneof field to ensure
+// exactly one command type is present in the message.
+message ClientCommand {
+    // Unique ID for the player who sent the command
+    string playerId = 1; 
+    
+    // The tick number the client expects the command to be executed on
+    int32 targetTick = 2; 
+
+    oneof command_type {
+        MoveUnitsCommand moveUnits = 3;
+        AttackCommand attack = 4;
+        // ... add more commands here
+    }
+}
+
+message MoveUnitsCommand {
+    // List of entity IDs being moved
+    repeated int64 entityIds = 1; 
+    
+    // Target position (using fixed-point coordinates)
+    FixedPoint x = 2; 
+    FixedPoint y = 3; 
+}
+
+message AttackCommand {
+    int64 attackerId = 1;
+    int64 targetId = 2;
+}
+
+// --- 2. SERVER TO CLIENT: Game State Messages ---
+
+// Message sent by the server at regular intervals (e.g., 60 times per second)
+message GameTickUpdate {
+    // The current deterministic tick number
+    int32 tickNumber = 1; 
+    
+    // Array of state updates for entities
+    repeated EntityState entities = 2;
+}
+
+// Represents the state of a single game entity
+message EntityState {
+    int64 id = 1;
+    int32 health = 2; // Health can be an integer for simplicity
+
+    // Position component (using fixed-point for deterministic physics)
+    FixedPoint posX = 3; 
+    FixedPoint posY = 4;
+    
+    // Use an enum for the current action to minimize payload size
+    enum UnitAction {
+        ACTION_UNSPECIFIED = 0; // Best practice: use 0 for an unknown/default state
+        IDLE = 1;
+        MOVING = 2;
+        ATTACKING = 3;
+    }
+    UnitAction currentAction = 5;
+}

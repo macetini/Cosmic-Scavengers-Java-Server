@@ -93,7 +93,7 @@
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
                 <configuration>
-                    <protocExecutable>path/to/protoc</protocExecutable>
+                    <protocExecutable>C:/Development/libs/protoc_33_1/bin/protoc.exe</protocExecutable>
                     <clearOutputDirectory>false</clearOutputDirectory>
                 </configuration>
                 <executions>
