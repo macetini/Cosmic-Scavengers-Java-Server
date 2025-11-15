@@ -1,77 +1,103 @@
 syntax = "proto3";
 
-// Defines the package for the generated Java classes
-// This will be used in your Java imports: com.cosmic.scavengers.proto
-option java_package = "com.cosmic.scavengers.proto";
-option java_outer_classname = "GameMessages";
+package cosmic.scavengers;
 
-// --- FIXED-POINT REPRESENTATION ---
-// Since Protobuf does not have a native fixed-point type, we represent it
-// as a standard 64-bit integer, and rely on the application logic (Decimal4j) 
-// on both the server (Java) and client (C#) to interpret the scaling factor.
-// This ensures determinism across platforms.
-message FixedPoint {
-    // Stores the scaled integer value (e.g., 1.23 * 10000 = 12300)
-    int64 value = 1; 
+option java_package = "com.cosmic.scavengers.network.proto";
+option java_multiple_files = true;
+
+// =========================================================================
+// NOTE ON FIXED-POINT ARITHMETIC
+// =========================================================================
+// All 'int64' fields representing position, speed, or velocity components 
+// are the UN-SCALED long values of the decimal4j Decimal<Scale4f> type. 
+// On the client and server, these values must be re-interpreted using 
+// a fixed scale of 4 (e.g., value of 1234567L means 123.4567).
+// =========================================================================
+
+
+// --- 1. Core Data Structures ---
+
+// Represents a fixed-point 2D vector for position or velocity.
+message Vector2D {
+  // Unscaled long value of the X-coordinate (Scale4f)
+  int64 x = 1; 
+  // Unscaled long value of the Y-coordinate (Scale4f)
+  int64 y = 2;
 }
 
-// --- 1. CLIENT TO SERVER: Game Command Messages ---
-// Base message for all client commands. Uses a oneof field to ensure
-// exactly one command type is present in the message.
+// Represents the state of an active movement component.
+message MovementData {
+  // The final destination target for the entity.
+  Vector2D target = 1; 
+  // Unscaled long value of the movement speed (Scale4f)
+  int64 speed_unscaled = 2;
+}
+
+
+// --- 2. Server -> Client Synchronization Messages ---
+
+// Represents a snapshot of a single entity's state.
+message EntitySnapshot {
+  // Unique ID of the entity.
+  int64 entity_id = 1;
+  // Current position of the entity.
+  Vector2D position = 2;
+  // The type of the entity (e.g., PLAYER, ASTEROID, SHIP).
+  EntityType type = 3; 
+
+  // Movement is optional; only included if the entity is currently moving.
+  MovementData movement = 4; 
+}
+
+// The main message containing the state of the entire game world.
+message WorldState {
+  // The current simulation tick number. Critical for client prediction/reconciliation.
+  int64 tick_number = 1;
+  // A list of all entities in the current simulation state.
+  repeated EntitySnapshot entities = 2;
+}
+
+
+// --- 3. Client -> Server Command Messages ---
+
+// Base message for all client inputs that modify the game state.
 message ClientCommand {
-    // Unique ID for the player who sent the command
-    string playerId = 1; 
-    
-    // The tick number the client expects the command to be executed on
-    int32 targetTick = 2; 
-
-    oneof command_type {
-        MoveUnitsCommand moveUnits = 3;
-        AttackCommand attack = 4;
-        // ... add more commands here
+    // The client's unique user ID.
+    string client_id = 1; 
+    // The command being issued by the client.
+    oneof command {
+        // Command to start moving an entity to a new target.
+        MoveCommand move_command = 2;
+        // Command to interact with the world (e.g., mining, docking).
+        InteractCommand interact_command = 3;
     }
 }
 
-message MoveUnitsCommand {
-    // List of entity IDs being moved
-    repeated int64 entityIds = 1; 
-    
-    // Target position (using fixed-point coordinates)
-    FixedPoint x = 2; 
-    FixedPoint y = 3; 
+// Specific command for movement.
+message MoveCommand {
+    // The entity the client controls (e.g., their ship).
+    int64 entity_id = 1;
+    // The target position to move to.
+    Vector2D target_position = 2;
+    // The requested speed. The server should cap this based on entity stats.
+    int64 speed_unscaled = 3;
 }
 
-message AttackCommand {
-    int64 attackerId = 1;
-    int64 targetId = 2;
-}
-
-// --- 2. SERVER TO CLIENT: Game State Messages ---
-
-// Message sent by the server at regular intervals (e.g., 60 times per second)
-message GameTickUpdate {
-    // The current deterministic tick number
-    int32 tickNumber = 1; 
-    
-    // Array of state updates for entities
-    repeated EntityState entities = 2;
-}
-
-// Represents the state of a single game entity
-message EntityState {
-    int64 id = 1;
-    int32 health = 2; // Health can be an integer for simplicity
-
-    // Position component (using fixed-point for deterministic physics)
-    FixedPoint posX = 3; 
-    FixedPoint posY = 4;
-    
-    // Use an enum for the current action to minimize payload size
-    enum UnitAction {
-        ACTION_UNSPECIFIED = 0; // Best practice: use 0 for an unknown/default state
-        IDLE = 1;
-        MOVING = 2;
-        ATTACKING = 3;
+// Placeholder for future interaction commands.
+message InteractCommand {
+    enum InteractionType {
+        MINE_ASTEROID = 0;
+        DOCK_STATION = 1;
     }
-    UnitAction currentAction = 5;
+    InteractionType type = 1;
+    int64 target_entity_id = 2;
+}
+
+// --- 4. Enums ---
+
+enum EntityType {
+    ENTITY_TYPE_UNSPECIFIED = 0;
+    PLAYER_SHIP = 1;
+    ASTEROID = 2;
+    SPACE_STATION = 3;
 }
