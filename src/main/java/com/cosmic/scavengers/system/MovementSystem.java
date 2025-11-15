@@ -88,11 +88,27 @@ public class MovementSystem implements Runnable {
 				return;
 			}
 
+			// Compute distance (unscaled) once and guard against extremely small values
+			long distanceUnscaled = ARITHMETIC.sqrt(distanceSquaredUnscaled);
+			if (distanceUnscaled == 0L) {
+				// Distance so small it rounded to zero — treat as reached
+				handleSnapCondition(entity, movement);
+				return;
+			}
+
 			// Displacement Magnitude (DM) = Speed * Time Delta
 			long displacementUnscaled = ARITHMETIC.multiply(movement.speed().unscaledValue(),
 					TICK_DELTA.unscaledValue());
+
+			// If the computed displacement would overshoot the remaining distance,
+			// snap directly to the target to avoid oscillation/overshoot.
+			if (Math.abs(displacementUnscaled) >= distanceUnscaled) {
+				handleSnapCondition(entity, movement);
+				return;
+			}
+
 			// Normalized Direction Vector (NDV) = Delta / Distance
-			NormalizedDirection normalizedDirection = calculateNormalizedDirection(distanceSquaredUnscaled,
+			NormalizedDirection normalizedDirection = calculateNormalizedDirection(distanceUnscaled,
 					distanceDelta);
 
 			// Displacement Vector = (NDV * DM)
@@ -100,11 +116,11 @@ public class MovementSystem implements Runnable {
 					normalizedDirection);
 
 			// New Position = Current Position + Displacement Vector
-			Position newPostion = calculateNewPosition(position, displacementVector);
+			Position newPosition = calculateNewPosition(position, displacementVector);
 
 			// Update the entity's position component
-			entity.add(newPostion);
-			log.debug("Entity {} moved to ({}, {})", entity.getName(), newPostion.x(), newPostion.y());
+			entity.add(newPosition);
+			log.debug("Entity {} moved to ({}, {})", entity.getName(), newPosition.x(), newPosition.y());
 
 		});
 	}
@@ -144,10 +160,8 @@ public class MovementSystem implements Runnable {
 				movement.targetY());
 	}
 
-	private NormalizedDirection calculateNormalizedDirection(long distanceSquaredUnscaled,
+	private NormalizedDirection calculateNormalizedDirection(long distanceUnscaled,
 			DistanceDelta distanceDelta) {
-		long distanceUnscaled = ARITHMETIC.sqrt(distanceSquaredUnscaled);
-
 		// Normalized Direction Vector (Delta / Distance)
 		long normXUnscaled = ARITHMETIC.divide(distanceDelta.deltaXUnscaled, distanceUnscaled);
 		long normYUnscaled = ARITHMETIC.divide(distanceDelta.deltaYUnscaled, distanceUnscaled);
