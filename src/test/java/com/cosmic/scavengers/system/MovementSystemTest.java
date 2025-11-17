@@ -33,6 +33,27 @@ import dev.dominion.ecs.api.Entity;
 import dev.dominion.ecs.api.Results;
 import dev.dominion.ecs.api.Results.With2;
 
+/**
+ * Unit tests for {@link MovementSystem}.
+ *
+ * <p>This test class exercises internal movement math via reflection and
+ * the public run() behavior via a mocked Dominion/Results stream. Tests are
+ * written against fixed-point Decimal values (Decimal4j) and assert on the
+ * unscaled values which represent the deterministic fixed-point units used
+ * throughout the movement system.
+ *
+ * <p>Key goals covered by tests:
+ * <ul>
+ *   <li>Verify low-level helpers (distance delta, squared distance, normalization,
+ *       displacement scaling, and position addition) behave as expected for
+ *       common numeric cases (e.g., 3-4-5 triangle).</li>
+ *   <li>Verify the snap behavior which places an entity exactly at its target
+ *       and removes the Movement component.</li>
+ *   <li>Verify that {@link MovementSystem#run()} advances an entity by a
+ *       single tick when appropriate (speed * tick delta) using a mocked
+ *       Dominion result set.</li>
+ * </ul>
+ */
 class MovementSystemTest {
 	private static final Logger log = LoggerFactory.getLogger(MovementSystemTest.class);
 
@@ -41,12 +62,24 @@ class MovementSystemTest {
 	@Mock
 	private Dominion dominion;
 
+	/**
+	 * Create a fresh MovementSystem using a mocked Dominion before each test.
+	 */
 	@BeforeEach
 	void setup() {
 		MockitoAnnotations.openMocks(this);
 		movementSystem = new MovementSystem(dominion);
 	}
 
+	/**
+	 * Tests calculateDistanceDelta for a simple positive vector.
+	 *
+	 * Scenario:
+	 * - Start (0,0), Target (10,5), Speed 1.0
+	 *
+	 * Expectations:
+	 * - DeltaX equals 10.0 and DeltaY equals 5.0 (validated via Decimal equality)
+	 */
 	@Test
 	void test_CalculateDistanceDelta_PositiveVector() {
 		final Decimal<Scale4f> startX = DecimalUtils.fromInteger(0L);
@@ -87,6 +120,12 @@ class MovementSystemTest {
 		assertEquals(expectedDeltaY, distanceDelta.deltaY, "DeltaY should be 50000L (5.0).");
 	}
 
+	/**
+	 * Tests calculateDistanceSquaredUnscaled implements the Pythagorean theorem
+	 * in unscaled fixed-point units.
+	 *
+	 * Scenario: deltaX=3.0, deltaY=4.0 -> distance^2 should be 25.0 (250000L unscaled)
+	 */
 	@Test
 	void test_CalculateDistanceSquaredUnscaled_Pythagoras() {
 		// DeltaX = 3.0 (Unscaled 30000L)
@@ -121,6 +160,10 @@ class MovementSystemTest {
 				"Distance squared should equal 25.0 (250000L) calculated using Pythagoras.");
 	}
 
+	/**
+	 * Tests that handleSnapCondition places the entity exactly at the target
+	 * position and removes the Movement component from the entity.
+	 */
 	@Test
 	void test_HandleSnapCondition_PositionAndRemoval() {
 		final Entity mockEntity = mock(Entity.class);
@@ -167,6 +210,10 @@ class MovementSystemTest {
 
 	}
 
+	/**
+	 * Tests calculateNormalizedDirection for a 3-4-5 triangle ensuring the
+	 * normalized components are correct in unscaled units (0.6 and 0.8).
+	 */
 	@Test
 	void test_CalculateNormalizedDirection_BasicVector() {
 		// Right triangle (the 3-4-5 Pythagorean triple)
@@ -205,6 +252,10 @@ class MovementSystemTest {
 		assertEquals(expectedNormY, normalizedDirection.normYUnscaled, "Normalized Y should be 0.8 (8000L).");
 	}
 
+	/**
+	 * Tests calculateDisplacementVector scales a normalized direction by the
+	 * displacement magnitude producing the expected unscaled displacement.
+	 */
 	@Test
 	void test_CalculateDisplacementVector_BasicScale() {
 		// Normalized Direction (0.6, 0.8) for a 3-4-5 triangle
@@ -244,6 +295,11 @@ class MovementSystemTest {
 		assertEquals(expectedDispY, displacementVector.dispYUnscaled, "Displacement Y should be 1.6 (16000L).");
 	}
 
+	/**
+	 * Tests calculateNewPosition correctly adds an unscaled displacement to
+	 * the current position and returns a new {@link Position} with expected
+	 * unscaled Decimal values.
+	 */
 	@Test
 	void test_CalculateNewPosition_Addition() {
 		// Start Position: (1.0, 5.0) -> Use DecimalUtils.fromInteger if 1L maps to
@@ -285,9 +341,17 @@ class MovementSystemTest {
 	}
 
 	/**
-	 * Test case 1: Verifies basic movement exactly one step towards the target.
+	 * End-to-end style test: verifies that a single run() call advances an
+	 * entity one tick toward its target when the movement should not snap.
+	 *
+	 * Scenario:
+	 * - Start (0,0), Target (10,0), Speed 1.0, Tick delta = 0.1 -> move 0.1 units
+	 *
+	 * Expectations:
+	 * - Entity's X position advances by 0.1 (1000L unscaled)
+	 * - Y position remains unchanged
+	 * - Movement component is NOT removed (no snapping)
 	 */
-
 	@Test
 	void test_Whole_BasicMovementTowardsTarget() {
 		// Position (0.0, 0.0)
