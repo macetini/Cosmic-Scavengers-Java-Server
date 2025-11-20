@@ -7,8 +7,6 @@ public class HashGenerator {
 	private static final Logger log = LoggerFactory.getLogger(HashGenerator.class);
 
 	public static void main(String[] args) {
-
-		// --- CONFIGURATION ---
 		String username = "player_1";
 		String password = "secret"; // <-- Use your desired test password
 

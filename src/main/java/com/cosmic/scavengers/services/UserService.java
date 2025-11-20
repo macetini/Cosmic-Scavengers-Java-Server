@@ -1,6 +1,9 @@
-package com.cosmic.scavengers.db;
+package com.cosmic.scavengers.services;
 
 import com.cosmic.scavengers.core.SecurityUtils;
+import com.cosmic.scavengers.db.UserRepository;
+import com.cosmic.scavengers.db.meta.Player;
+
 import org.springframework.stereotype.Service;
 
 /**

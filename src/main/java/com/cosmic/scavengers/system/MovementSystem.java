@@ -160,7 +160,6 @@ public class MovementSystem implements Runnable {
 
 		// Displacement Magnitude (DM) = Speed * Time Delta
 		long displacementUnscaled = ARITHMETIC.multiply(movement.speed().unscaledValue(), TICK_DELTA.unscaledValue());
-
 		final long absoluteDisplacement = Math.abs(displacementUnscaled);
 
 		// Check Snap Condition: Reached target, distance is zero, or overshot target

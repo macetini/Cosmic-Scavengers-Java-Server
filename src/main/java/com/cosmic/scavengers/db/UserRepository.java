@@ -3,6 +3,8 @@ package com.cosmic.scavengers.db;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.cosmic.scavengers.db.meta.Player;
+
 /**
  * Spring Data JPA Repository for Player entities. It manages the Player entity,
  * using Long as the primary key type.

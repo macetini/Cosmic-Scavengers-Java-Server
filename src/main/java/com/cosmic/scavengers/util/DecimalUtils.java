@@ -16,11 +16,7 @@ import com.cosmic.scavengers.proto.GameMessages.FixedPoint;
  * deterministic results across all clients and the server.
  */
 public final class DecimalUtils {
-
-	// 1. Initialize the ARITHMETIC instance first, using the required RoundingMode
 	public static final DecimalArithmetic ARITHMETIC = Scale4f.INSTANCE.getArithmetic(RoundingMode.HALF_EVEN);
-
-	// 2. Create the DecimalFactory using the defined Scale and Arithmetic
 	public static final DecimalFactory<Scale4f> FACTORY = Factories.getDecimalFactory(Scale4f.INSTANCE);
 
 	private DecimalUtils() {
@@ -63,6 +59,9 @@ public final class DecimalUtils {
 		return FACTORY.valueOf(value);
 	}
 
+	/**
+	 * Creates a Decimal4j object from an unscaled long value.
+	 */
 	public static Decimal<Scale4f> fromUnscaled(long unscaledValue) {
 		return FACTORY.valueOfUnscaled(unscaledValue);
 	}

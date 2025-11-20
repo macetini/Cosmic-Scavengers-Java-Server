@@ -3,9 +3,8 @@ package com.cosmic.scavengers.networking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.core.IMessageBroadcaster;
-import com.cosmic.scavengers.db.Player;
-import com.cosmic.scavengers.db.UserService;
+import com.cosmic.scavengers.db.meta.Player;
+import com.cosmic.scavengers.services.UserService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -21,14 +20,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	private static final Logger log = LoggerFactory.getLogger(GameChannelHandler.class);
 
 	private final UserService userService;
-	private final IMessageBroadcaster broadcaster;
-
 	private ChannelHandlerContext ctx; // Store context for sending messages
-	private Player authenticatedPlayer;
 
-	public GameChannelHandler(UserService userService, IMessageBroadcaster broadcaster) {
+	public GameChannelHandler(UserService userService) {
 		this.userService = userService;
-		this.broadcaster = broadcaster;
 	}
 
 	@Override
@@ -76,7 +71,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 				break;
 			case "C_REGISTER":
 				handleRegister(parts);
-				break;			
+				break;
 			default:
 				log.warn("Unknown text command received: {}", command);
 				sendTextMessage("S_ERROR|UNKNOWN_COMMAND");
@@ -87,8 +82,6 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			log.debug("Received BINARY payload: {} bytes", msg.readableBytes());
 		}
 	}
-
-	// --- Authentication Handlers ---
 
 	private void handleLogin(String[] parts) {
 		// Protocol check: C_LOGIN|username|password
@@ -102,8 +95,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		Player player = userService.loginUser(username, password);
 
-		if (player != null) {
-			this.authenticatedPlayer = player;
+		if (player != null) {			
 			log.info("Player {} (ID: {}) logged in successfully.", username, player.getId());
 			// Success: S_LOGIN_OK|PlayerID
 			sendTextMessage("S_LOGIN_OK|" + player.getId());
@@ -123,14 +115,11 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			return;
 		}
 
-		// Extract username and password
 		String username = parts[1];
 		String password = parts[2];
-
 		Player player = userService.registerUser(username, password);
 
-		if (player != null) {
-			this.authenticatedPlayer = player;
+		if (player != null) {			
 			log.info("Player {} (ID: {}) registered and logged in.", username, player.getId());
 			// Success: S_REGISTER_OK|PlayerID
 			sendTextMessage("S_REGISTER_OK|" + player.getId());
@@ -146,7 +135,6 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		if (ctx != null && message != null) {
 			// Write the text content as a ByteBuf
 			ByteBuf payload = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
-
 			// The prepender will automatically add the length prefix.
 			ctx.writeAndFlush(payload);
 		} else {

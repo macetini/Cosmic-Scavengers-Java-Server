@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.db;
+package com.cosmic.scavengers.db.meta;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
