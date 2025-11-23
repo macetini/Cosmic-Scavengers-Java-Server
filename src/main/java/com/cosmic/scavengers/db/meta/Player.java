@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "players")
 public class Player {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -29,8 +28,6 @@ public class Player {
 	// Stores the Base64 salt (24 characters)
 	@Column(nullable = false, length = 24)
 	private String salt;
-
-	// --- Constructors ---
 
 	public Player() {
 		// Default constructor required by JPA

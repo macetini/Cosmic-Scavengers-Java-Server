@@ -3,13 +3,15 @@ package com.cosmic.scavengers.networking;
 import com.cosmic.scavengers.services.UserService;
 
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
 
 public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
+
 	private final UserService userService;
+
+	private static final int MAX_FRAME_LENGTH = 1024 * 1024;
+	private static final int LENGTH_FIELD_LENGTH = 4;
 
 	public NettyServerInitializer(UserService userService) {
 		this.userService = userService;
@@ -17,16 +19,11 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-		ChannelPipeline pipeline = ch.pipeline();
+		LengthFieldBasedFrameDecoder decoder = new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, 0,
+				LENGTH_FIELD_LENGTH, 0, LENGTH_FIELD_LENGTH);
 
-		pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(1048576, // maxFrameLength (1MB)
-				0, // lengthFieldOffset
-				4, // lengthFieldLength (int size)
-				0, // lengthAdjustment
-				4 // initialBytesToStrip (removes the length prefix before passing to handler)
-		));
+		GameChannelHandler handler = new GameChannelHandler(userService);
 
-		pipeline.addLast("prepender", new LengthFieldPrepender(4));
-		pipeline.addLast("handler", new GameChannelHandler(userService));
+		ch.pipeline().addLast(decoder, handler);
 	}
 }

@@ -35,7 +35,7 @@ public class ApplicationStartupRunner implements ApplicationRunner {
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		log.info("Application starting up: Launching NettyServer and GameEngine threads...");
-
+		
 		// Start the GameEngine thread
 		// This handles the fixed-timestep game loop
 		executorService.submit(gameEngine);
@@ -44,9 +44,6 @@ public class ApplicationStartupRunner implements ApplicationRunner {
 		// Start the NettyServer thread
 		// This handles all blocking I/O for the server binding
 		executorService.submit(nettyServer);
-		log.info("NettyServer submitted to executor.");
-
-		// Note: The main thread will exit run(), but the application will remain
-		// alive because the threads in the executorService are running.
+		log.info("NettyServer submitted to executor.");		
 	}
 }

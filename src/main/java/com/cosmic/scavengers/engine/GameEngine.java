@@ -57,7 +57,6 @@ public class GameEngine implements Runnable {
 					log.warn("Game tick took too long and fell behind schedule by {}ms.", currentTime - nextGameTick);
 				}
 			}
-
 			executeGameTick();
 			nextGameTick += TICK_RATE_MS;
 		}

@@ -20,7 +20,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	private static final Logger log = LoggerFactory.getLogger(GameChannelHandler.class);
 
 	private final UserService userService;
-	private ChannelHandlerContext ctx; // Store context for sending messages
+	private ChannelHandlerContext ctx;
 
 	public GameChannelHandler(UserService userService) {
 		this.userService = userService;
@@ -127,9 +127,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			log.warn("Registration failed for user: {}. Username likely taken.", username);
 			sendTextMessage("S_REGISTER_FAIL|USERNAME_TAKEN");
 		}
-	}
-
-	// --- Utility Methods (TODO Maybe put in separate method later on) ---
+	}	
 
 	public void sendTextMessage(String message) {
 		if (ctx != null && message != null) {

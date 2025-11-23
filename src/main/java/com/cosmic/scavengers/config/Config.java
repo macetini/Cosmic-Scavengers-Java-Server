@@ -12,17 +12,17 @@ import dev.dominion.ecs.api.Dominion;
 @Configuration
 public class Config {
 	@Bean
-	public Dominion dominion() {
+	Dominion dominion() {
 		return Dominion.create();
 	}
 
 	@Bean
-	public MovementSystem movementSystem(Dominion dominion) {
+	MovementSystem movementSystem(Dominion dominion) {
 		return new MovementSystem(dominion);
 	}
 
 	@Bean
-	public IMessageBroadcaster messageBroadcaster() {
+	IMessageBroadcaster messageBroadcaster() {
 		return new MessageBroadcasterImpl();
 	}
 }
