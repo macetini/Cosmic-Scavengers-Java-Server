@@ -5,6 +5,7 @@ import com.cosmic.scavengers.services.UserService;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 
 public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -22,8 +23,8 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 		LengthFieldBasedFrameDecoder decoder = new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, 0,
 				LENGTH_FIELD_LENGTH, 0, LENGTH_FIELD_LENGTH);
 
+		LengthFieldPrepender prepender = new LengthFieldPrepender(LENGTH_FIELD_LENGTH);
 		GameChannelHandler handler = new GameChannelHandler(userService);
-
-		ch.pipeline().addLast(decoder, handler);
+		ch.pipeline().addLast(decoder, prepender, handler);
 	}
 }

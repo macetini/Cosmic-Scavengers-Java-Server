@@ -1,5 +1,7 @@
 package com.cosmic.scavengers.networking;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,10 @@ import io.netty.util.CharsetUtil;
  */
 public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	private static final Logger log = LoggerFactory.getLogger(GameChannelHandler.class);
+
+	// --- Message Type Constants (Must match client definition) ---
+	private static final byte TYPE_TEXT = 0x01;
+	private static final byte TYPE_BINARY = 0x02;
 
 	private final UserService userService;
 	private ChannelHandlerContext ctx;
@@ -53,7 +59,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		if (protocolPeek.startsWith("C_") || protocolPeek.startsWith("R_")) {
 			// TODO: Put in a seperate method to reduce complexity
-
+			
 			// Convert the full buffer content to a string
 			String message = msg.toString(CharsetUtil.UTF_8).trim();
 			log.debug("Received TEXT: {}", message);
@@ -93,9 +99,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		String username = parts[1];
 		String password = parts[2];
 
-		Player player = userService.loginUser(username, password);
+		Optional<Player> playerOptional = userService.loginUser(username, password);
 
-		if (player != null) {			
+		if (playerOptional.isPresent()) {
+			Player player = playerOptional.get();
 			log.info("Player {} (ID: {}) logged in successfully.", username, player.getId());
 			// Success: S_LOGIN_OK|PlayerID
 			sendTextMessage("S_LOGIN_OK|" + player.getId());
@@ -117,9 +124,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		String username = parts[1];
 		String password = parts[2];
-		Player player = userService.registerUser(username, password);
+		Optional<Player> playerOptional = userService.registerUser(username, password);
 
-		if (player != null) {			
+		if (playerOptional.isPresent()) {
+			Player player = playerOptional.get();
 			log.info("Player {} (ID: {}) registered and logged in.", username, player.getId());
 			// Success: S_REGISTER_OK|PlayerID
 			sendTextMessage("S_REGISTER_OK|" + player.getId());
@@ -127,23 +135,37 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			log.warn("Registration failed for user: {}. Username likely taken.", username);
 			sendTextMessage("S_REGISTER_FAIL|USERNAME_TAKEN");
 		}
-	}	
+	}
 
+	/**
+	 * Sends a text message back to the client, prepending the TEXT message type
+	 * byte. The Netty pipeline is expected to prepend the 4-byte length header.
+	 */
 	public void sendTextMessage(String message) {
 		if (ctx != null && message != null) {
-			// Write the text content as a ByteBuf
-			ByteBuf payload = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
-			// The prepender will automatically add the length prefix.
-			ctx.writeAndFlush(payload);
+			ByteBuf messagePayload = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
+
+			ByteBuf finalPayload = Unpooled.buffer(1 + messagePayload.readableBytes());
+			finalPayload.writeByte(TYPE_TEXT);
+			finalPayload.writeBytes(messagePayload);
+
+			ctx.writeAndFlush(finalPayload);
 		} else {
 			log.warn("Attempted to send text message but context or message was null.");
 		}
 	}
 
+	/**
+	 * Sends a binary message back to the client, prepending the BINARY message type
+	 * byte. The Netty pipeline is expected to prepend the 4-byte length header.
+	 */
 	public void sendBinaryMessage(ByteBuf payload) {
-		if (ctx != null && payload != null) {
-			// The prepender will automatically add the length prefix.
-			ctx.writeAndFlush(payload);
+		if (ctx != null && payload != null) {			
+			ByteBuf finalPayload = Unpooled.buffer(1 + payload.readableBytes());
+			finalPayload.writeByte(TYPE_BINARY);
+			finalPayload.writeBytes(payload);
+			
+			ctx.writeAndFlush(finalPayload);
 		} else {
 			log.warn("Attempted to send binary message but context or message was null.");
 		}

@@ -1,5 +1,7 @@
 package com.cosmic.scavengers.db;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,5 +21,5 @@ public interface UserRepository extends JpaRepository<Player, Long> {
 	 * @return The Player entity if found, or null otherwise (assuming
 	 *         JpaRepository's finders can return null).
 	 */
-	Player findByUsername(String username);
+	Optional<Player> findByUsername(String username);
 }

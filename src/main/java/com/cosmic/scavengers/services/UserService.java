@@ -1,10 +1,15 @@
 package com.cosmic.scavengers.services;
 
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cosmic.scavengers.core.SecurityUtils;
 import com.cosmic.scavengers.db.UserRepository;
 import com.cosmic.scavengers.db.meta.Player;
-
-import org.springframework.stereotype.Service;
 
 /**
  * Service layer for player account management (Login and Registration). This
@@ -12,12 +17,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class UserService {
+	private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
+	private final PlayerInitService playerInitService;
 
-	public UserService(UserRepository userRepository) {
-		// Spring automatically injects the JpaRepository implementation
+	public UserService(UserRepository userRepository, PlayerInitService playerInitService) {
 		this.userRepository = userRepository;
+		this.playerInitService = playerInitService;
 	}
 
 	/**
@@ -27,19 +34,26 @@ public class UserService {
 	 * @return The newly created Player entity, or null if the username already
 	 *         exists.
 	 */
-	public Player registerUser(String username, String plaintextPassword) {
+	@Transactional
+	public Optional<Player> registerUser(String username, String plaintextPassword) {
 		// Check if username is already taken
-		if (userRepository.findByUsername(username) != null) {
-			return null;
+		if (userRepository.findByUsername(username).isPresent()) {
+			log.warn("Registration failed: Username '{}' is already taken.", username);
+			return Optional.empty(); // Username already exists
 		}
 
-		// 1. Generate Salt and Hash using SecurityUtils
-		String salt = SecurityUtils.generateSalt();
-		String hash = SecurityUtils.hashPassword(plaintextPassword, salt);
+		// Generate Salt and Hash using SecurityUtils
+		final String salt = SecurityUtils.generateSalt();
+		final String hash = SecurityUtils.hashPassword(plaintextPassword, salt);
 
-		// 2. Create and Save Player
-		Player newPlayer = new Player(username, hash, salt);
-		return userRepository.save(newPlayer);
+		// Create and Save Player
+		final Player newPlayer = new Player(username, hash, salt);
+		final Player savedPlayer = userRepository.save(newPlayer);
+
+		// Initialize Player's starting game state
+		playerInitService.ensurePlayerInitialized(savedPlayer);
+
+		return Optional.of(savedPlayer);
 	}
 
 	/**
@@ -50,17 +64,27 @@ public class UserService {
 	 * @return The authenticated Player entity, or null on failure (user not found
 	 *         or bad password).
 	 */
-	public Player loginUser(String username, String plaintextPassword) {
-		// 1. Find user by username
-		Player player = userRepository.findByUsername(username);
-		if (player == null) {
-			return null; // User not found
+	@Transactional
+	public Optional<Player> loginUser(String username, String plaintextPassword) {
+		final Optional<Player> playerOptional = userRepository.findByUsername(username);
+		if (playerOptional.isEmpty()) {
+			log.info("Login failed: User '{}' not found.", username);
+			return Optional.empty(); // User not found
 		}
 
-		// 2. Verify Password using the stored hash and salt
-		boolean authenticated = SecurityUtils.verifyPassword(plaintextPassword, player.getPasswordHash(),
+		Player player = playerOptional.get();
+
+		final boolean authenticated = SecurityUtils.verifyPassword(plaintextPassword, player.getPasswordHash(),
 				player.getSalt());
 
-		return authenticated ? player : null;
+		if (!authenticated) {
+			log.info("Authentication failed for user '{}': Incorrect password.", username);
+			return Optional.empty(); // Authentication failed
+		}
+
+		playerInitService.ensurePlayerInitialized(player);
+
+		log.info("User '{}' logged and authenticated successfully.", username);
+		return Optional.of(player);
 	}
 }
