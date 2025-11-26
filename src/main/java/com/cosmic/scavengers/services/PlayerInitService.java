@@ -52,7 +52,6 @@ public class PlayerInitService {
 		List<PlayerEntity> entities = playerEntityRepository.findAllByPlayerId(player.getId());
 
 		if (entities.isEmpty()) {
-
 			log.info("Creating initial MAIN_BASE for player (ID: {} - UName: {}).", player.getId(),
 					player.getUsername());
 

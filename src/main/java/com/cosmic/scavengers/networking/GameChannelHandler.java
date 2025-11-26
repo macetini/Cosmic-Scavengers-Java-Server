@@ -40,9 +40,6 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		log.info("Client connected: {}", ctx.channel().remoteAddress());
-
-		sendTextMessage(ctx, "S_CONNECT_OK");
-
 		super.channelActive(ctx);
 	}
 
@@ -74,26 +71,25 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			String command = parts[0];
 
 			switch (command) {
+			case "C_CONNECT":
+				// Initial connection handshake
+				log.info("Client connection handshake received.");
+				sendTextMessage(ctx, "S_CONNECT_OK");
+				break;
 			case "C_LOGIN":
-				// FIXED: Pass ctx to the handler
 				handleLogin(ctx, parts);
 				break;
 			case "C_REGISTER":
-				// FIXED: Pass ctx to the handler
 				handleRegister(ctx, parts);
 				break;
 			default:
-				log.warn("Unknown text command received: {}", command);
-				// FIXED: Pass ctx to the sender
+				log.warn("Unknown text command received: {}", command);				
 				sendTextMessage(ctx, "S_ERROR|UNKNOWN_COMMAND");
 				break;
 			}
 
 		} else if (messageType == TYPE_BINARY) {
-			// --- BINARY PROTOCOL (Game State) ---
-
 			int payloadSize = msg.readableBytes();
-
 			log.info("Received BINARY payload: {} bytes", payloadSize);
 			// Example: handleBinaryGameData(ctx, msg);
 
