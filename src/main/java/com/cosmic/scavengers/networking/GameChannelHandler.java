@@ -6,8 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.meta.Player;
+import com.cosmic.scavengers.db.meta.World;
+import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
-import com.cosmic.scavengers.services.WorldService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,11 +38,11 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	}
 
 	private final UserService userService;
-	private final WorldService worldService;
+	private final PlayerStateService playerStateService;
 
-	public GameChannelHandler(UserService userService, WorldService worldService) {
+	public GameChannelHandler(UserService userService, PlayerStateService playerStateService) {
 		this.userService = userService;
-		this.worldService = worldService;
+		this.playerStateService = playerStateService;
 	}
 
 	@Override
@@ -210,8 +211,8 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		log.info("Player ID {} requested initial world state.", playerId);
 
 		try {
-			// 3. Send the world state to the player			
-			// sendTextMessage(ctx, "S_WORLD_STATE|" + worldStateString);
+			World playerWorld = playerStateService.getCurrentWorldByPlayerId(playerId);
+			log.info("Retrieved world ID {} for player ID {}.", playerWorld.getId(), playerId);			
 
 		} catch (Exception e) {
 			log.error("Error handling world state request for player {}: {}", playerId, e.getMessage());

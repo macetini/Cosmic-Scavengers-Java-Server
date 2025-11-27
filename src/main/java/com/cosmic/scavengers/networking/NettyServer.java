@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
-import com.cosmic.scavengers.services.WorldService;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
@@ -23,11 +23,11 @@ public class NettyServer implements Runnable {
 
 	// Dependencies
 	private final UserService userService;
-	private final WorldService worldService;
+	private final PlayerStateService playerStateService;
 
-	public NettyServer(UserService userService, WorldService worldService) {
+	public NettyServer(UserService userService, PlayerStateService playerStateService) {
 		this.userService = userService;
-		this.worldService = worldService;
+		this.playerStateService = playerStateService;
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class NettyServer implements Runnable {
 		try {
 			ServerBootstrap serverBootstrap = new ServerBootstrap();
 			serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-					.childHandler(new NettyServerInitializer(userService, worldService));
+					.childHandler(new NettyServerInitializer(userService, playerStateService));
 
 			serverBootstrap.bind(PORT).sync().channel().closeFuture().sync();
 			log.info("Netty Server started and listening on port {}", PORT);

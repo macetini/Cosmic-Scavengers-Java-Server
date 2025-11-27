@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.networking;
 
+import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
 import com.cosmic.scavengers.services.WorldService;
 
@@ -11,14 +12,14 @@ import io.netty.handler.codec.LengthFieldPrepender;
 public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private final UserService userService;
-	private final WorldService worldService;
+	private final PlayerStateService playerStateService;
 
 	private static final int MAX_FRAME_LENGTH = 1024 * 1024;
 	private static final int LENGTH_FIELD_LENGTH = 4;
 
-	public NettyServerInitializer(UserService userService, WorldService worldService) {
+	public NettyServerInitializer(UserService userService, PlayerStateService playerStateService) {
 		this.userService = userService;
-		this.worldService = worldService;
+		this.playerStateService = playerStateService;
 	}
 
 	@Override
@@ -27,7 +28,7 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 				LENGTH_FIELD_LENGTH, 0, LENGTH_FIELD_LENGTH);
 
 		LengthFieldPrepender prepender = new LengthFieldPrepender(LENGTH_FIELD_LENGTH);
-		GameChannelHandler handler = new GameChannelHandler(userService, worldService);
+		GameChannelHandler handler = new GameChannelHandler(userService, playerStateService);
 		ch.pipeline().addLast(decoder, prepender, handler);
 	}
 }

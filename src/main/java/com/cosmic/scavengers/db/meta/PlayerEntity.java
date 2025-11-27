@@ -37,7 +37,7 @@ public class PlayerEntity {
 	private World world;
 
 	@Column(name = "entity_type", nullable = false, length = 50)
-	private String entityType; // 'SHIP', 'AVATAR'
+	private String entityType; //
 
 	@Column(name = "chunk_x", nullable = false)
 	private Integer chunkX;

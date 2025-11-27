@@ -25,22 +25,18 @@ public class PlayerStateService {
 
 	/**
 	 * Finds the current World a Player is active in, given the Player's ID.
-	 * * @param playerId The ID of the player.
+	 *
+	 * @param playerId The ID of the player.
 	 * 
 	 * @return The World entity the player is currently in.
+	 * 
+	 * @throws IllegalArgumentException if the PlayerEntity is not found.
 	 */
 	@Transactional(readOnly = true)
 	public World getCurrentWorldByPlayerId(Long playerId) {
 		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
 				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
 
-		final Long currentWorldId = playerEntity.getWorld().getId();
-
-		if (currentWorldId == null) {
-			throw new IllegalStateException("Player Entity with ID: " + playerId + " has no current world assigned.");
-		}
-
-		// 3. Use the WorldService to get the World object.
-		return null;//worldService.getWorldById(currentWorldId);
+		return playerEntity.getWorld();
 	}
 }
