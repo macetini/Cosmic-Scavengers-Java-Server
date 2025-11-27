@@ -1,8 +1,20 @@
 package com.cosmic.scavengers.db.meta;
 
-import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.Objects;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Maps to 'player_entities'. Stores dynamic, real-time locations of the
@@ -12,7 +24,6 @@ import java.util.Objects;
 @Entity
 @Table(name = "player_entities")
 public class PlayerEntity {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -44,6 +55,7 @@ public class PlayerEntity {
 	private Integer health;
 
 	// Maps the PostgreSQL jsonb type.
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "state_data", columnDefinition = "jsonb")
 	private String stateData;
 
