@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.services;
 
+import java.util.Date;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -8,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.SecurityUtils;
-import com.cosmic.scavengers.db.UserRepository;
 import com.cosmic.scavengers.db.meta.Player;
+import com.cosmic.scavengers.db.repo.PlayerRepository;
 
 /**
  * Service layer for player account management (Login and Registration). This
@@ -19,10 +20,10 @@ import com.cosmic.scavengers.db.meta.Player;
 public class UserService {
 	private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-	private final UserRepository userRepository;
+	private final PlayerRepository userRepository;
 	private final PlayerInitService playerInitService;
 
-	public UserService(UserRepository userRepository, PlayerInitService playerInitService) {
+	public UserService(PlayerRepository userRepository, PlayerInitService playerInitService) {
 		this.userRepository = userRepository;
 		this.playerInitService = playerInitService;
 	}
@@ -47,7 +48,7 @@ public class UserService {
 		final String hash = SecurityUtils.hashPassword(plaintextPassword, salt);
 
 		// Create and Save Player
-		final Player newPlayer = new Player(username, hash, salt);
+		final Player newPlayer = new Player(username, hash, salt, (new Date()).toInstant());
 		final Player savedPlayer = userRepository.save(newPlayer);
 
 		// Initialize Player's starting game state

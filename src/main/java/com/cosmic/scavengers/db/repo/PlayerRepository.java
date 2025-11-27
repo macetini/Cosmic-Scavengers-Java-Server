@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.db;
+package com.cosmic.scavengers.db.repo;
 
 import java.util.Optional;
 
@@ -12,7 +12,7 @@ import com.cosmic.scavengers.db.meta.Player;
  * using Long as the primary key type.
  */
 @Repository
-public interface UserRepository extends JpaRepository<Player, Long> {
+public interface PlayerRepository extends JpaRepository<Player, Long> {
 
 	/**
 	 * Finds a Player by their unique username. Spring Data automatically implements

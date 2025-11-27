@@ -201,7 +201,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		if (parts.length != 2) {
 			sendTextMessage(ctx, "S_ERROR|INVALID_FORMAT");
 			return;
-		}
+		}		
 
 		long playerId = Long.parseLong(parts[1]);		
 		log.info("Player ID {} requested initial world state.", playerId);

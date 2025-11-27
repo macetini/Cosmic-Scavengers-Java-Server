@@ -5,28 +5,27 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Maps to 'player_entities'. Stores dynamic, real-time locations of the
- * player's ship or avatar. This class MUST contain the 'world' property for the
- * inverse mapping to succeed.
+ * Maps to 'world_entities'. Stores static, persistent objects like bases and
+ * resources.
  */
 @Entity
-@Table(name = "player_entities")
-public class PlayerEntity {
+@Table(name = "world_entities")
+public class WorldEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "player_id", nullable = false)
-	private Player player;
-
-	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "world_id", nullable = false)
 	private World world;
 
 	@Column(name = "entity_type", nullable = false, length = 50)
-	private String entityType; // 'SHIP', 'AVATAR'
+	private String entityType; // e.g., 'PLAYER_BASE', 'RESOURCE_NODE'
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "owner_player_id")
+	private Player ownerPlayer; // Nullable FK for ownership
 
 	@Column(name = "chunk_x", nullable = false)
 	private Integer chunkX;
@@ -40,33 +39,37 @@ public class PlayerEntity {
 	@Column(name = "pos_y", nullable = false)
 	private Float posY;
 
-	@Column(name = "health", nullable = false)
-	private Integer health;
+	@Column(name = "current_health", nullable = false)
+	private Integer currentHealth;
 
-	// Maps the PostgreSQL jsonb type.
+	// Maps the PostgreSQL jsonb type. We use String for generic storage.
 	@Column(name = "state_data", columnDefinition = "jsonb")
 	private String stateData;
 
 	@Column(name = "created_at")
 	private Instant createdAt;
 
+	@Column(name = "last_updated")
+	private Instant lastUpdated;
+
 	// --- Constructors ---
 
-	public PlayerEntity() {
+	public WorldEntity() {
 	}
 
-	public PlayerEntity(Player player, World world, String entityType, Integer chunkX, Integer chunkY, Float posX,
-			Float posY, Integer health, String stateData, Instant createdAt) {
-		this.player = player;
+	public WorldEntity(World world, String entityType, Player ownerPlayer, Integer chunkX, Integer chunkY, Float posX,
+			Float posY, Integer currentHealth, String stateData, Instant createdAt, Instant lastUpdated) {
 		this.world = world;
 		this.entityType = entityType;
+		this.ownerPlayer = ownerPlayer;
 		this.chunkX = chunkX;
 		this.chunkY = chunkY;
 		this.posX = posX;
 		this.posY = posY;
-		this.health = health;
+		this.currentHealth = currentHealth;
 		this.stateData = stateData;
 		this.createdAt = createdAt;
+		this.lastUpdated = lastUpdated;
 	}
 
 	// --- Getters and Setters ---
@@ -77,14 +80,6 @@ public class PlayerEntity {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
-	public void setPlayer(Player player) {
-		this.player = player;
 	}
 
 	public World getWorld() {
@@ -101,6 +96,14 @@ public class PlayerEntity {
 
 	public void setEntityType(String entityType) {
 		this.entityType = entityType;
+	}
+
+	public Player getOwnerPlayer() {
+		return ownerPlayer;
+	}
+
+	public void setOwnerPlayer(Player ownerPlayer) {
+		this.ownerPlayer = ownerPlayer;
 	}
 
 	public Integer getChunkX() {
@@ -135,12 +138,12 @@ public class PlayerEntity {
 		this.posY = posY;
 	}
 
-	public Integer getHealth() {
-		return health;
+	public Integer getCurrentHealth() {
+		return currentHealth;
 	}
 
-	public void setHealth(Integer health) {
-		this.health = health;
+	public void setCurrentHealth(Integer currentHealth) {
+		this.currentHealth = currentHealth;
 	}
 
 	public String getStateData() {
@@ -159,15 +162,23 @@ public class PlayerEntity {
 		this.createdAt = createdAt;
 	}
 
+	public Instant getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(Instant lastUpdated) {
+		this.lastUpdated = lastUpdated;
+	}
+
 	// --- Equals, HashCode, and ToString ---
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof PlayerEntity))
+		if (!(o instanceof WorldEntity))
 			return false;
-		PlayerEntity that = (PlayerEntity) o;
+		WorldEntity that = (WorldEntity) o;
 		return id != null && Objects.equals(id, that.id);
 	}
 
@@ -178,7 +189,7 @@ public class PlayerEntity {
 
 	@Override
 	public String toString() {
-		return "PlayerEntity{" + "id=" + id + ", entityType='" + entityType + '\'' + ", chunkX=" + chunkX + ", chunkY="
+		return "WorldEntity{" + "id=" + id + ", entityType='" + entityType + '\'' + ", chunkX=" + chunkX + ", chunkY="
 				+ chunkY + '}';
 	}
 }
