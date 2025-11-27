@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.db.repo;
+package com.cosmic.scavengers.db.repos;
 
 import java.util.List;
 

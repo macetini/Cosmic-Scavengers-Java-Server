@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.SecurityUtils;
 import com.cosmic.scavengers.db.meta.Player;
-import com.cosmic.scavengers.db.repo.PlayerRepository;
+import com.cosmic.scavengers.db.repos.PlayerRepository;
 
 /**
  * Service layer for player account management (Login and Registration). This
@@ -72,7 +72,6 @@ public class UserService {
 			log.info("Login failed: User '{}' not found.", username);
 			return Optional.empty(); // User not found
 		}
-
 		Player player = playerOptional.get();
 
 		final boolean authenticated = SecurityUtils.verifyPassword(plaintextPassword, player.getPasswordHash(),

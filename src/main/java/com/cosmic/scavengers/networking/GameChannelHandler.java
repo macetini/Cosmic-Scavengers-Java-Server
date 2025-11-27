@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.meta.Player;
 import com.cosmic.scavengers.services.UserService;
+import com.cosmic.scavengers.services.WorldService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,7 +24,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 	private enum PacketType {
 		TYPE_TEXT((byte) 0x01), TYPE_BINARY((byte) 0x02);
-		
+
 		private final byte value;
 
 		PacketType(byte value) {
@@ -36,9 +37,11 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	}
 
 	private final UserService userService;
+	private final WorldService worldService;
 
-	public GameChannelHandler(UserService userService) {
+	public GameChannelHandler(UserService userService, WorldService worldService) {
 		this.userService = userService;
+		this.worldService = worldService;
 	}
 
 	@Override
@@ -89,8 +92,8 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			case "C_REGISTER":
 				handleRegister(ctx, parts);
 				break;
-			case "C_REQUEST_INITIAL_WORLD_STATE":
-				handleInitialWorldStateRequest(ctx, parts);
+			case "C_REQUEST_WORLD_STATE":
+				handleWorldStateRequest(ctx, parts);
 				break;
 			default:
 				log.warn("Unknown text command received: {}", command);
@@ -197,14 +200,23 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	/**
 	 * Handles the client's request for the initial world state.
 	 */
-	private void handleInitialWorldStateRequest(ChannelHandlerContext ctx, String[] parts) {
+	private void handleWorldStateRequest(ChannelHandlerContext ctx, String[] parts) {
 		if (parts.length != 2) {
 			sendTextMessage(ctx, "S_ERROR|INVALID_FORMAT");
 			return;
-		}		
+		}
 
-		long playerId = Long.parseLong(parts[1]);		
+		long playerId = Long.parseLong(parts[1]);
 		log.info("Player ID {} requested initial world state.", playerId);
+
+		try {
+			// 3. Send the world state to the player			
+			// sendTextMessage(ctx, "S_WORLD_STATE|" + worldStateString);
+
+		} catch (Exception e) {
+			log.error("Error handling world state request for player {}: {}", playerId, e.getMessage());
+			sendTextMessage(ctx, "S_ERROR|WORLD_STATE_ERROR");
+		}
 	}
 
 }

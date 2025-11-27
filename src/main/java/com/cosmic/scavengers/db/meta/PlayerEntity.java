@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
 
 /**
  * Maps to 'player_entities'. Stores dynamic, real-time locations of the
- * player's ship or avatar. This class MUST contain the 'world' property for the
+ * player's or avatar. This class MUST contain the 'world' property for the
  * inverse mapping to succeed.
  */
 @Entity
@@ -78,7 +78,7 @@ public class PlayerEntity {
 		this.posY = posY;
 		this.health = health;
 		this.stateData = stateData;
-		this.createdAt = createdAt;
+		this.createdAt = createdAt;		
 	}
 
 	// --- Getters and Setters ---
@@ -170,7 +170,6 @@ public class PlayerEntity {
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
-
 	// --- Equals, HashCode, and ToString ---
 
 	@Override

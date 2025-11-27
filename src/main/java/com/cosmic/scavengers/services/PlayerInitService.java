@@ -11,74 +11,67 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cosmic.scavengers.db.meta.Player;
 import com.cosmic.scavengers.db.meta.PlayerEntity;
 import com.cosmic.scavengers.db.meta.World;
-import com.cosmic.scavengers.db.repo.PlayerEntityRepository;
-import com.cosmic.scavengers.db.repo.WorldRepository; // Import WorldRepository
+import com.cosmic.scavengers.db.repos.PlayerEntityRepository;
 
 /**
  * Service dedicated to managing the initial game state creation for a player.
- * This includes idempotent checks to ensure a player always has required
- * starting entities.
+ * Uses the WorldService to abstract access to world data.
  */
 @Service
 public class PlayerInitService {
 	private static final Logger log = LoggerFactory.getLogger(PlayerInitService.class);
 
 	private final PlayerEntityRepository playerEntityRepository;
-	private final WorldRepository worldRepository; // Dependency added
+	private final WorldService worldService;
 
-	// Updated constructor to include WorldRepository
-	public PlayerInitService(PlayerEntityRepository playerEntityRepository, WorldRepository worldRepository) {
+	// Updated constructor to use WorldService
+	public PlayerInitService(PlayerEntityRepository playerEntityRepository, WorldService worldService) {
 		this.playerEntityRepository = playerEntityRepository;
-		this.worldRepository = worldRepository;
+		this.worldService = worldService;
 	}
 
 	/**
 	 * Public method called during login/registration to ensure the player's core
-	 * game entities exist. This is the new, centralized entry point for initial
-	 * game state setup. * @param player The authenticated Player object.
+	 * game entities exist.
 	 * 
-	 * @return void
+	 * @param player The authenticated Player object.
+	 * 
 	 */
 	@Transactional // Ensures the entity creation is an atomic database operation
 	public void ensurePlayerInitialized(Player player) {
-		// We only check for the MAIN_BASE for simplicity, but more complex logic
-		// could check for all required starting resources/units.
 		createMainBaseIfMissing(player);
-
 		// Add other initialization calls here (e.g., giveStartingUnitsIfMissing)
 	}
 
 	/**
-	 * Checks if the player has any entities and creates a "MAIN_BASE" at (0, 0) if
+	 * Checks if the player has any entities and creates a starter SHIP at (0, 0) if
 	 * none exist. This is an idempotent check.
 	 */
 	private void createMainBaseIfMissing(Player player) {
 		List<PlayerEntity> entities = playerEntityRepository.findAllByPlayerId(player.getId());
 
 		if (entities.isEmpty()) {
-			log.info("Creating initial MAIN_BASE for player (ID: {} - UName: {}).", player.getId(),
+			log.info("Creating initial starter MAIN_BASE for player (ID: {} - UName: {}).", player.getId(),
 					player.getUsername());
 
-			// 1. Fetch the required World object.
-			// Assuming the first world (ID 1L) is the starting world.
-			World defaultWorld = worldRepository.findById(1L).orElseThrow(
-					() -> new IllegalStateException("Default World ID 1 not found. Cannot create player base."));
+			World defaultWorld = worldService.getDefaultWorld();
 
-			// 2. Instantiate PlayerEntity using the correct constructor signature
-			PlayerEntity mainBase = new PlayerEntity(player, // Player object
-					defaultWorld, // World object (Now correctly defined)
+			PlayerEntity newPlayerEntity = new PlayerEntity(player, // Player object
+					defaultWorld, // World object
 					"MAIN_BASE", // entityType
 					0, // chunkX (Integer)
 					0, // chunkY (Integer)
 					0.0f, // posX (Float, using 0.0f)
 					0.0f, // posY (Float, using 0.0f)
-					500, // health (Integer)
+					100, // health (Integer)
 					"{\"resource\": 50}", // stateData (JSON String)
 					Instant.now() // createdAt (Instant)
 			);
 
-			playerEntityRepository.save(mainBase);
-			log.info("Successfully created initial MAIN_BASE for player {}.", player.getUsername());
+			playerEntityRepository.save(newPlayerEntity);
+
+			log.info("Successfully created initial STARTER_SHIP for player {}.", player.getUsername());
 		}
 	}
+
 }
