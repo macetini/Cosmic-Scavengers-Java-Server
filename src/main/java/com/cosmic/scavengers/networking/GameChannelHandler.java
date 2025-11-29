@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.networking;
 
+import java.nio.ByteOrder;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -102,11 +103,29 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 				break;
 			}
 		} else if (messageType == PacketType.TYPE_BINARY.getValue()) {
-			int payloadSize = msg.readableBytes();
-			log.info("Received BINARY payload: {} bytes", payloadSize);
-			// Example: handleBinaryGameData(ctx, msg);
+			// int payloadSize = msg.readableBytes();
+			handleBinaryGameData(ctx, msg);
 		} else {
 			log.warn("Received unknown message type: 0x{}", Integer.toHexString(messageType & 0xFF));
+		}
+	}
+
+	private void handleBinaryGameData(ChannelHandlerContext ctx, ByteBuf msg) {
+		if (msg.readableBytes() < 2) {
+			log.warn("Binary payload too short to contain command.");
+			return;
+		}
+
+		short command = msg.readShortLE();
+
+		switch (command) {
+		case NetworkCommands.REQUEST_WORLD_STATE:
+			long playerId = msg.readLongLE();
+			log.info("Player ID {} requested world state via binary command.", playerId);
+			break;
+		default:
+			log.warn("Received unknown message type: {}", command);
+			break;
 		}
 	}
 
@@ -212,7 +231,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		try {
 			World playerWorld = playerStateService.getCurrentWorldByPlayerId(playerId);
-			log.info("Retrieved world ID {} for player ID {}.", playerWorld.getId(), playerId);			
+			log.info("Retrieved world ID {} for player ID {}.", playerWorld.getId(), playerId);
 
 		} catch (Exception e) {
 			log.error("Error handling world state request for player {}: {}", playerId, e.getMessage());
