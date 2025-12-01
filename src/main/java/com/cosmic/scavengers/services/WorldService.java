@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.meta.World;
 import com.cosmic.scavengers.db.repos.WorldRepository;
+import com.cosmic.scavengers.networking.meta.WorldData;
 
 /**
  * Service dedicated to handling world-level business logic, such as retrieving
@@ -43,6 +44,31 @@ public class WorldService {
 		}
 
 		return worldOptional.get();
+	}
+
+	/**
+	 * Converts the persistent World Entity into the network WorldData DTO. This
+	 * method is the DTO Population step.
+	 *
+	 * @param world         The JPA Entity retrieved from the database (Primary Data
+	 *                      Source).
+	 * @param currentChunkX The current X coordinate (Dynamic Data Source).
+	 * @param currentChunkY The current Y coordinate (Dynamic Data Source).
+	 * 
+	 * @return A clean, immutable WorldData DTO ready for serialization.
+	 * 
+	 */
+	@Transactional(readOnly = true)	
+	public static Optional<WorldData> toWorldData(World world) {
+		if (world == null) {
+			log.warn("Attempted to convert null World entity to WorldData DTO.");
+			return Optional.empty();
+		}		
+
+		WorldData data = new WorldData(world.getId(), world.getWorldName(), world.getMapSeed(),
+				world.getSectorSizeUnits());
+
+		return Optional.of(data);
 	}
 
 	/**

@@ -1,11 +1,15 @@
 package com.cosmic.scavengers.services;
 
+import java.util.Optional;
+
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.meta.PlayerEntity;
 import com.cosmic.scavengers.db.meta.World;
 import com.cosmic.scavengers.db.repos.PlayerEntityRepository;
+import com.cosmic.scavengers.networking.meta.WorldData;
 
 /**
  * Service dedicated to retrieving a player's current game state, including
@@ -13,6 +17,7 @@ import com.cosmic.scavengers.db.repos.PlayerEntityRepository;
  */
 @Service
 public class PlayerStateService {
+	Logger log = org.slf4j.LoggerFactory.getLogger(PlayerStateService.class);
 
 	private final PlayerEntityRepository playerEntityRepository;
 	private final WorldService worldService;
@@ -21,6 +26,25 @@ public class PlayerStateService {
 	public PlayerStateService(PlayerEntityRepository playerEntityRepository, WorldService worldService) {
 		this.playerEntityRepository = playerEntityRepository;
 		this.worldService = worldService;
+	}
+
+	/**
+	 * Finds the current World's metadata (as a DTO) for a given player. The
+	 * transactional scope ensures all necessary fields are initialized.
+	 *
+	 * @param playerId The ID of the player.
+	 * @return The network-ready WorldData DTO.
+	 */
+	@Transactional(readOnly = true)
+	public Optional<WorldData> getCurrentWorldDataByPlayerId(Long playerId) {
+		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
+				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
+
+		World currentWorld = playerEntity.getWorld();
+		
+		log.info("Retrieved world ID {} for player ID {}.", currentWorld.getId(), playerId);
+
+		return worldService.toWorldData(currentWorld);
 	}
 
 	/**
@@ -33,7 +57,7 @@ public class PlayerStateService {
 	 * @throws IllegalArgumentException if the PlayerEntity is not found.
 	 */
 	@Transactional(readOnly = true)
-	public World getCurrentWorldByPlayerId(Long playerId) {
+	protected World getCurrentWorldByPlayerId(Long playerId) {
 		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
 				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
 

@@ -1,13 +1,13 @@
 package com.cosmic.scavengers.networking;
 
-import java.nio.ByteOrder;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.meta.Player;
-import com.cosmic.scavengers.db.meta.World;
+import com.cosmic.scavengers.networking.meta.WorldData;
+import com.cosmic.scavengers.networking.requests.handlers.WorldRequestHandler;
 import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
 
@@ -94,9 +94,6 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			case "C_REGISTER":
 				handleRegister(ctx, parts);
 				break;
-			case "C_REQUEST_WORLD_STATE":
-				handleWorldStateRequest(ctx, parts);
-				break;
 			default:
 				log.warn("Unknown text command received: {}", command);
 				sendTextMessage(ctx, "S_ERROR|UNKNOWN_COMMAND");
@@ -121,7 +118,14 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		switch (command) {
 		case NetworkCommands.REQUEST_WORLD_STATE:
 			long playerId = msg.readLongLE();
-			log.info("Player ID {} requested world state via binary command.", playerId);
+			Optional<WorldData> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
+			if (playerWorldData.isEmpty()) {
+				log.warn("Failed to retrieve world data for player ID {}.", playerId);
+				return;
+			}
+			ByteBuf responseBuffer = WorldRequestHandler.serializeWorldStateData(playerWorldData.get());
+
+			sendBinaryMessage(ctx, responseBuffer, NetworkCommands.REQUEST_WORLD_STATE);
 			break;
 		default:
 			log.warn("Received unknown message type: {}", command);
@@ -202,41 +206,33 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 	/**
 	 * Sends a binary message back to the client, prepending the BINARY message type
-	 * byte. FIXED: Now uses the passed ChannelHandlerContext.
+	 * byte and command. FIXED: Now uses the passed ChannelHandlerContext.
 	 */
-	public void sendBinaryMessage(ChannelHandlerContext ctx, ByteBuf payload) {
-		if (ctx != null && payload != null) {
-			ByteBuf finalPayload = Unpooled.buffer(1 + payload.readableBytes());
-			finalPayload.writeByte(PacketType.TYPE_BINARY.getValue());
-			finalPayload.writeBytes(payload);
-
-			// Use the passed ctx to ensure the response goes to the correct channel
-			ctx.writeAndFlush(finalPayload);
-		} else {
+	public void sendBinaryMessage(ChannelHandlerContext ctx, ByteBuf payload, short command) {
+		if (ctx == null || payload == null) {
+			if (payload != null)
+				payload.release();
 			log.warn("Attempted to send binary message but context or message was null.");
-		}
-	}
-
-	/**
-	 * Handles the client's request for the initial world state.
-	 */
-	private void handleWorldStateRequest(ChannelHandlerContext ctx, String[] parts) {
-		if (parts.length != 2) {
-			sendTextMessage(ctx, "S_ERROR|INVALID_FORMAT");
 			return;
 		}
 
-		long playerId = Long.parseLong(parts[1]);
-		log.info("Player ID {} requested initial world state.", playerId);
+		// Header size: 1 (Type) + 2 (Command) + 4 (Length) = 7 bytes
+		int bufferLength = Byte.BYTES + Short.BYTES + Integer.BYTES;
 
-		try {
-			World playerWorld = playerStateService.getCurrentWorldByPlayerId(playerId);
-			log.info("Retrieved world ID {} for player ID {}.", playerWorld.getId(), playerId);
+		int payloadSize = payload.readableBytes();
+		bufferLength += payloadSize;
 
-		} catch (Exception e) {
-			log.error("Error handling world state request for player {}: {}", playerId, e.getMessage());
-			sendTextMessage(ctx, "S_ERROR|WORLD_STATE_ERROR");
-		}
+		ByteBuf finalPayload = Unpooled.buffer(bufferLength);
+
+		finalPayload.writeByte(PacketType.TYPE_BINARY.getValue()); // 1 byte: Protocol Type
+		finalPayload.writeShortLE(command); // 2 bytes: Command (Little Endian)
+		finalPayload.writeIntLE(payloadSize); // 4 bytes: Payload Length N (Little Endian)
+		finalPayload.writeBytes(payload); // N bytes: Actual Payload
+
+		payload.release();
+
+		// Use the passed ctx to ensure the response goes to the correct channel
+		log.info("Sending binary message of size {} bytes.", finalPayload.readableBytes());
+		ctx.writeAndFlush(finalPayload);
 	}
-
 }
