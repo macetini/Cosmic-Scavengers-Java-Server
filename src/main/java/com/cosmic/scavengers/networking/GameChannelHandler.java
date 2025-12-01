@@ -100,7 +100,6 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 				break;
 			}
 		} else if (messageType == PacketType.TYPE_BINARY.getValue()) {
-			// int payloadSize = msg.readableBytes();
 			handleBinaryGameData(ctx, msg);
 		} else {
 			log.warn("Received unknown message type: 0x{}", Integer.toHexString(messageType & 0xFF));
@@ -113,18 +112,17 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			return;
 		}
 
-		short command = msg.readShortLE();
+		short command = msg.readShort();
 
 		switch (command) {
 		case NetworkCommands.REQUEST_WORLD_STATE:
-			long playerId = msg.readLongLE();
+			long playerId = msg.readLong();
 			Optional<WorldData> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
 			if (playerWorldData.isEmpty()) {
 				log.warn("Failed to retrieve world data for player ID {}.", playerId);
 				return;
 			}
 			ByteBuf responseBuffer = WorldRequestHandler.serializeWorldStateData(playerWorldData.get());
-
 			sendBinaryMessage(ctx, responseBuffer, NetworkCommands.REQUEST_WORLD_STATE);
 			break;
 		default:
@@ -225,8 +223,8 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		ByteBuf finalPayload = Unpooled.buffer(bufferLength);
 
 		finalPayload.writeByte(PacketType.TYPE_BINARY.getValue()); // 1 byte: Protocol Type
-		finalPayload.writeShortLE(command); // 2 bytes: Command (Little Endian)
-		finalPayload.writeIntLE(payloadSize); // 4 bytes: Payload Length N (Little Endian)
+		finalPayload.writeShort(command); // 2 bytes: Command (Little Endian)
+		finalPayload.writeInt(payloadSize); // 4 bytes: Payload Length N
 		finalPayload.writeBytes(payload); // N bytes: Actual Payload
 
 		payload.release();

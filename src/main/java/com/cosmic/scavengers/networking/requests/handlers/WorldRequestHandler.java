@@ -25,16 +25,16 @@ public class WorldRequestHandler {
 		ByteBuf buffer = Unpooled.buffer(estimatedSize);
 
 		// 8 bytes: World ID (long)
-		buffer.writeLongLE(worldData.id());
+		buffer.writeLong(worldData.id());
 
 		// Variable Length String: World Name (Length Prefix)
 		byte[] nameBytes = worldData.worldName().getBytes(StandardCharsets.UTF_8);
-		buffer.writeIntLE(nameBytes.length); // 4 bytes for length
+		buffer.writeInt(nameBytes.length); // 4 bytes for length
 		buffer.writeBytes(nameBytes); // N bytes for data
 		// 8 bytes: Map Seed (long)
-		buffer.writeLongLE(worldData.mapSeed());
+		buffer.writeLong(worldData.mapSeed());
 		// 4 bytes: Sector Size (int)
-		buffer.writeIntLE(worldData.sectorSizeUnits());
+		buffer.writeInt(worldData.sectorSizeUnits());
 
 		log.info("Serialized world state payload size: {} bytes.", buffer.readableBytes());
 		return buffer;
