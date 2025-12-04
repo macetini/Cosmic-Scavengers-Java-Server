@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version> <relativePath/> 
+        <version>3.5.8</version> <relativePath/> 
     </parent>
 
     <groupId>com.cosmic.scavengers</groupId>
@@ -37,14 +37,12 @@
         
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
+            <artifactId>netty-all</artifactId>            
         </dependency>
         
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.3</version> 
         </dependency>
         
         <dependency>
