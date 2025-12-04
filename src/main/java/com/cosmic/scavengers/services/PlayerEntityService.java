@@ -34,7 +34,7 @@ public class PlayerEntityService {
 	 * @return A list of PlayerEntity objects.
 	 */
 	@Transactional(readOnly = true)
-	public List<PlayerEntityDTO> getEntitiesByPlayerId(Long playerId) {		
+	public List<PlayerEntityDTO> getEntitiesByPlayerId(Long playerId) {
 		List<PlayerEntity> playerEntites = playerEntityRepository.findAllByPlayerId(playerId);
 		return playerEntites.stream().map(PlayerEntityDTO::fromEntity).toList();
 	}

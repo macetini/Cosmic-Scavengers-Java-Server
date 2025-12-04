@@ -1,11 +1,13 @@
 package com.cosmic.scavengers.networking;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.meta.Player;
+import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
 import com.cosmic.scavengers.networking.meta.WorldData;
 import com.cosmic.scavengers.networking.requests.handlers.WorldRequestHandler;
 import com.cosmic.scavengers.services.PlayerStateService;
@@ -113,17 +115,25 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		}
 
 		short command = msg.readShort();
+		long playerId;
 
 		switch (command) {
 		case NetworkCommands.REQUEST_WORLD_STATE:
-			long playerId = msg.readLong();
+			playerId = msg.readLong();
 			Optional<WorldData> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
 			if (playerWorldData.isEmpty()) {
-				log.warn("Failed to retrieve world data for player ID {}.", playerId);
+				log.info("Failed to retrieve world data for player ID {}.", playerId);
 				return;
 			}
 			ByteBuf responseBuffer = WorldRequestHandler.serializeWorldStateData(playerWorldData.get());
 			sendBinaryMessage(ctx, responseBuffer, NetworkCommands.REQUEST_WORLD_STATE);
+			break;
+		case NetworkCommands.REQUEST_PLAYER_ENTITIES:
+			playerId = msg.readLong();
+			log.info("Received REQUEST_PLAYER_ENTITIES for player ID {}.", playerId);
+			List<PlayerEntityDTO> playerEntities = playerStateService.getEntitiesByPlayerId(playerId);
+			ByteBuf entitiesBuffer = WorldRequestHandler.serializePlayerEntities(playerEntities);
+			sendBinaryMessage(ctx, entitiesBuffer, NetworkCommands.REQUEST_PLAYER_ENTITIES);
 			break;
 		default:
 			log.warn("Received unknown message type: {}", command);

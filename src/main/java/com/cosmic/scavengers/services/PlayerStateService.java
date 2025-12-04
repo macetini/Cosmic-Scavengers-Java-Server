@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cosmic.scavengers.db.meta.PlayerEntity;
 import com.cosmic.scavengers.db.meta.World;
 import com.cosmic.scavengers.db.repos.PlayerEntityRepository;
+import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
 import com.cosmic.scavengers.networking.meta.WorldData;
 
 /**
@@ -39,28 +41,27 @@ public class PlayerStateService {
 	public Optional<WorldData> getCurrentWorldDataByPlayerId(Long playerId) {
 		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
 				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
-
 		World currentWorld = playerEntity.getWorld();
-		
-		log.info("Retrieved world ID {} for player ID {}.", currentWorld.getId(), playerId);
 
+		log.info("Retrieved world ID {} for player ID {}.", currentWorld.getId(), playerId);
 		return worldService.toWorldData(currentWorld);
 	}
 
 	/**
-	 * Finds the current World a Player is active in, given the Player's ID.
-	 *
-	 * @param playerId The ID of the player.
+	 * Retrieves all PlayerEntity objects owned by a specific player ID. * @param
+	 * playerId The ID of the Player.
 	 * 
-	 * @return The World entity the player is currently in.
-	 * 
-	 * @throws IllegalArgumentException if the PlayerEntity is not found.
+	 * @return A list of PlayerEntity objects.
 	 */
 	@Transactional(readOnly = true)
-	protected World getCurrentWorldByPlayerId(Long playerId) {
-		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
-				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
+	public List<PlayerEntityDTO> getEntitiesByPlayerId(Long playerId) {
+		List<PlayerEntity> playerEntites = playerEntityRepository.findAllByPlayerId(playerId);
 
-		return playerEntity.getWorld();
+		if (playerEntites.isEmpty()) {
+			throw new IllegalArgumentException("No Player Entities found for Player ID: '" + playerId
+					+ "'.  This should not be possible, each player has to have at least 1 enetity.");
+		}
+
+		return playerEntites.stream().map(PlayerEntityDTO::fromEntity).toList();
 	}
 }

@@ -1,10 +1,12 @@
 package com.cosmic.scavengers.networking.requests.handlers;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
 import com.cosmic.scavengers.networking.meta.WorldData;
 
 import io.netty.buffer.ByteBuf;
@@ -14,6 +16,10 @@ public class WorldRequestHandler {
 	private static final Logger log = LoggerFactory.getLogger(WorldRequestHandler.class);
 
 	public static ByteBuf serializeWorldStateData(WorldData worldData) {
+		if (worldData == null) {
+			throw new IllegalArgumentException("WorldData cannot be null.");
+		}
+
 		int estimatedSize = 0;
 		estimatedSize += Long.BYTES; // World ID (long)
 		estimatedSize += Integer.BYTES; // World Name Length Prefix (int)
@@ -37,6 +43,56 @@ public class WorldRequestHandler {
 		buffer.writeInt(worldData.sectorSizeUnits());
 
 		log.info("Serialized world state payload size: {} bytes.", buffer.readableBytes());
+		return buffer;
+	}
+
+	public static ByteBuf serializePlayerEntities(List<PlayerEntityDTO> entities) {
+		if (entities == null) {
+			throw new IllegalArgumentException("Player entities list cannot be null.");
+		}
+
+		int estimatedSize = 0;
+		estimatedSize += Integer.BYTES; // Number of Entities (int)
+
+		int numEntities = entities.size();
+
+		int fixedSize = Long.BYTES + // id
+				Long.BYTES + // playerId
+				Long.BYTES + // worldId
+
+				Integer.BYTES + // chunkX
+				Integer.BYTES + // chunkY
+
+				Float.BYTES + // posX
+				Float.BYTES + // posY
+
+				Integer.BYTES; // health
+
+		estimatedSize += numEntities * fixedSize;
+
+		ByteBuf buffer = Unpooled.buffer(estimatedSize);
+
+		buffer.writeLong(numEntities);
+
+		for (int i = 0; i < numEntities; i++) {
+			PlayerEntityDTO entity = entities.get(i);
+
+			buffer.writeLong(entity.id());
+			buffer.writeLong(entity.playerId());
+			buffer.writeLong(entity.worldId());
+
+			buffer.writeInt(entity.chunkX());
+			buffer.writeInt(entity.chunkY());
+
+			buffer.writeFloat(entity.posX());
+			buffer.writeFloat(entity.posY());
+
+			buffer.writeInt(entity.health());
+		}
+
+		log.info("Serialized player entities payload size: {} bytes for {} entities.", buffer.readableBytes(),
+				numEntities);
+
 		return buffer;
 	}
 }

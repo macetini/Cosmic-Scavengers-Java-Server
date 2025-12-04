@@ -2,7 +2,6 @@ package com.cosmic.scavengers.networking;
 
 import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
-import com.cosmic.scavengers.services.WorldService;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
