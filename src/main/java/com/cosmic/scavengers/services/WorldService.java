@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.meta.World;
 import com.cosmic.scavengers.db.repos.WorldRepository;
-import com.cosmic.scavengers.networking.meta.WorldData;
+import com.cosmic.scavengers.networking.meta.WorldDataDTO;
 
 /**
  * Service dedicated to handling world-level business logic, such as retrieving
@@ -59,13 +59,13 @@ public class WorldService {
 	 * 
 	 */
 	@Transactional(readOnly = true)	
-	public static Optional<WorldData> toWorldData(World world) {
+	public static Optional<WorldDataDTO> toWorldData(World world) {
 		if (world == null) {
 			log.warn("Attempted to convert null World entity to WorldData DTO.");
 			return Optional.empty();
 		}		
 
-		WorldData data = new WorldData(world.getId(), world.getWorldName(), world.getMapSeed(),
+		WorldDataDTO data = new WorldDataDTO(world.getId(), world.getWorldName(), world.getMapSeed(),
 				world.getSectorSizeUnits());
 
 		return Optional.of(data);

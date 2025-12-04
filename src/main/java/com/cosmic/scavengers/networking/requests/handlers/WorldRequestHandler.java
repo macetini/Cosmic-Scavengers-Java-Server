@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
-import com.cosmic.scavengers.networking.meta.WorldData;
+import com.cosmic.scavengers.networking.meta.WorldDataDTO;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -15,7 +15,7 @@ import io.netty.buffer.Unpooled;
 public class WorldRequestHandler {
 	private static final Logger log = LoggerFactory.getLogger(WorldRequestHandler.class);
 
-	public static ByteBuf serializeWorldStateData(WorldData worldData) {
+	public static ByteBuf serializeWorldStateData(WorldDataDTO worldData) {
 		if (worldData == null) {
 			throw new IllegalArgumentException("WorldData cannot be null.");
 		}

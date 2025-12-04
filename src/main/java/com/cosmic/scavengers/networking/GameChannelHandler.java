@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.meta.Player;
 import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
-import com.cosmic.scavengers.networking.meta.WorldData;
+import com.cosmic.scavengers.networking.meta.WorldDataDTO;
 import com.cosmic.scavengers.networking.requests.handlers.WorldRequestHandler;
 import com.cosmic.scavengers.services.PlayerStateService;
 import com.cosmic.scavengers.services.UserService;
@@ -120,7 +120,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		switch (command) {
 		case NetworkCommands.REQUEST_WORLD_STATE:
 			playerId = msg.readLong();
-			Optional<WorldData> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
+			Optional<WorldDataDTO> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
 			if (playerWorldData.isEmpty()) {
 				log.info("Failed to retrieve world data for player ID {}.", playerId);
 				return;

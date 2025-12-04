@@ -11,7 +11,7 @@ import com.cosmic.scavengers.db.meta.PlayerEntity;
 import com.cosmic.scavengers.db.meta.World;
 import com.cosmic.scavengers.db.repos.PlayerEntityRepository;
 import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
-import com.cosmic.scavengers.networking.meta.WorldData;
+import com.cosmic.scavengers.networking.meta.WorldDataDTO;
 
 /**
  * Service dedicated to retrieving a player's current game state, including
@@ -38,7 +38,7 @@ public class PlayerStateService {
 	 * @return The network-ready WorldData DTO.
 	 */
 	@Transactional(readOnly = true)
-	public Optional<WorldData> getCurrentWorldDataByPlayerId(Long playerId) {
+	public Optional<WorldDataDTO> getCurrentWorldDataByPlayerId(Long playerId) {
 		final PlayerEntity playerEntity = playerEntityRepository.findById(playerId)
 				.orElseThrow(() -> new IllegalArgumentException("Player Entity not found with ID: " + playerId));
 		World currentWorld = playerEntity.getWorld();
