@@ -232,9 +232,9 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		ByteBuf finalPayload = Unpooled.buffer(bufferLength);
 
-		finalPayload.writeByte(PacketType.TYPE_BINARY.getValue()); // 1 byte: Protocol Type
-		finalPayload.writeShort(command); // 2 bytes: Command (Little Endian)
-		finalPayload.writeInt(payloadSize); // 4 bytes: Payload Length N
+		finalPayload.writeByte(PacketType.TYPE_BINARY.getValue()); // 1 Byte: Protocol Type
+		finalPayload.writeShort(command); // 2 Byte: Command (Little Endian)
+		finalPayload.writeInt(payloadSize); // 4 Byte: Payload Length N
 		finalPayload.writeBytes(payload); // N bytes: Actual Payload
 
 		payload.release();
