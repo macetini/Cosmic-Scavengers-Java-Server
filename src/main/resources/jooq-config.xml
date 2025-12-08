@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration
+	xmlns="http://www.jooq.org/xsd/jooq-codegen-3.19.0.xsd">
+
+	<jdbc>
+		<driver>org.postgresql.Driver</driver>
+		<url>jdbc:postgresql://192.168.1.3:5432/rts_game_db</url>
+		<user>rts_user</user>
+		<password>secret</password>
+	</jdbc>
+
+	<generator>
+
+		<target>
+			<packageName>com.cosmic.scavengers.db.model</packageName>
+		</target>
+
+		<database>
+			<name>org.jooq.meta.postgres.PostgresDatabase</name>
+			<inputSchema>public</inputSchema>
+			<includes>.*</includes>
+			<excludes></excludes>
+		</database>
+
+		<generate>
+			<deprecated>false</deprecated>
+			<instanceFields>true</instanceFields>
+			<pojos>true</pojos>
+			<daos>true</daos>
+		</generate>
+
+	</generator>
+
+</configuration>

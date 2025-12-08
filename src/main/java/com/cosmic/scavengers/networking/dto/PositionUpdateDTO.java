@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking.meta;
+package com.cosmic.scavengers.networking.dto;
 
 public class PositionUpdateDTO {
 	// We assume entity IDs are long in your Dominion ECS setup

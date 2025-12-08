@@ -6,12 +6,12 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.db.meta.Player;
-import com.cosmic.scavengers.networking.meta.PlayerEntityDTO;
-import com.cosmic.scavengers.networking.meta.WorldDataDTO;
+import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
+import com.cosmic.scavengers.db.model.tables.pojos.Players;
+import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
 import com.cosmic.scavengers.networking.requests.handlers.WorldRequestHandler;
-import com.cosmic.scavengers.services.PlayerStateService;
-import com.cosmic.scavengers.services.UserService;
+import com.cosmic.scavengers.services.jooq.PlayerInitService;
+import com.cosmic.scavengers.services.jooq.UserService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -41,11 +41,11 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	}
 
 	private final UserService userService;
-	private final PlayerStateService playerStateService;
+	private final PlayerInitService playerInitService;
 
-	public GameChannelHandler(UserService userService, PlayerStateService playerStateService) {
+	public GameChannelHandler(UserService userService, PlayerInitService playerInitService) {
 		this.userService = userService;
-		this.playerStateService = playerStateService;
+		this.playerInitService = playerInitService;
 	}
 
 	@Override
@@ -120,7 +120,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		switch (command) {
 		case NetworkCommands.REQUEST_WORLD_STATE:
 			playerId = msg.readLong();
-			Optional<WorldDataDTO> playerWorldData = playerStateService.getCurrentWorldDataByPlayerId(playerId);
+			Optional<Worlds> playerWorldData = playerInitService.getCurrentWorldDataByPlayerId(playerId);
 			if (playerWorldData.isEmpty()) {
 				log.info("Failed to retrieve world data for player ID {}.", playerId);
 				return;
@@ -131,9 +131,9 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		case NetworkCommands.REQUEST_PLAYER_ENTITIES:
 			playerId = msg.readLong();
 			log.info("Received REQUEST_PLAYER_ENTITIES for player ID {}.", playerId);
-			List<PlayerEntityDTO> playerEntities = playerStateService.getEntitiesByPlayerId(playerId);
+			List<PlayerEntities> playerEntities = playerInitService.getAllByPlayerId(playerId);
 			ByteBuf entitiesBuffer = WorldRequestHandler.serializePlayerEntities(playerEntities);
-			sendBinaryMessage(ctx, entitiesBuffer, NetworkCommands.REQUEST_PLAYER_ENTITIES);
+			sendBinaryMessage(ctx, entitiesBuffer, 	NetworkCommands.REQUEST_PLAYER_ENTITIES);
 			break;
 		default:
 			log.warn("Received unknown message type: {}", command);
@@ -154,10 +154,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		String username = parts[1];
 		String password = parts[2];
 
-		Optional<Player> playerOptional = userService.loginUser(username, password);
+		Optional<Players> playerOptional = userService.loginUser(username, password);
 
 		if (playerOptional.isPresent()) {
-			Player player = playerOptional.get();
+			Players player = playerOptional.get();
 			log.info("Player {} (ID: {}) logged in successfully.", username, player.getId());
 			// Success: S_LOGIN_OK|PlayerID
 			sendTextMessage(ctx, "S_LOGIN_OK|" + player.getId());
@@ -180,10 +180,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		String username = parts[1];
 		String password = parts[2];
-		Optional<Player> playerOptional = userService.registerUser(username, password);
+		Optional<Players> playerOptional = userService.registerUser(username, password);
 
 		if (playerOptional.isPresent()) {
-			Player player = playerOptional.get();
+			Players player = playerOptional.get();
 			log.info("Player {} (ID: {}) registered and logged in.", username, player.getId());
 			// Success: S_REGISTER_OK|PlayerID
 			sendTextMessage(ctx, "S_REGISTER_OK|" + player.getId());

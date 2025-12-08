@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.services;
+package com.cosmic.scavengers.broadcast;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import com.cosmic.scavengers.component.Movement;
 import com.cosmic.scavengers.component.Position;
 import com.cosmic.scavengers.core.IMessageBroadcaster;
 import com.cosmic.scavengers.networking.IStateBroadcaster;
-import com.cosmic.scavengers.networking.meta.PositionUpdateDTO;
+import com.cosmic.scavengers.networking.dto.PositionUpdateDTO;
 
 import dev.dominion.ecs.api.Dominion;
 import io.netty.buffer.ByteBuf;
