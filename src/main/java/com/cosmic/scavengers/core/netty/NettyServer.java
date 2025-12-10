@@ -1,11 +1,11 @@
-package com.cosmic.scavengers.networking.netty;
+package com.cosmic.scavengers.core.netty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.cosmic.scavengers.db.services.jooq.UserService;
 import com.cosmic.scavengers.networking.NetworkDispatcher;
-import com.cosmic.scavengers.services.jooq.UserService;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;

@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking.requests.handlers.meta;
+package com.cosmic.scavengers.networking.commands.handlers.meta;
 
 public enum PacketType {
 	TYPE_TEXT((byte) 0x01), TYPE_BINARY((byte) 0x02);

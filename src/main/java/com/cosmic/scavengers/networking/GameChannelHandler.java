@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
-import com.cosmic.scavengers.services.jooq.UserService;
+import com.cosmic.scavengers.db.services.jooq.UserService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

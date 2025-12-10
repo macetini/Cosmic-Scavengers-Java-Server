@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking;
+package com.cosmic.scavengers.networking.commands;
 
 import java.util.HashMap;
 import java.util.Map;

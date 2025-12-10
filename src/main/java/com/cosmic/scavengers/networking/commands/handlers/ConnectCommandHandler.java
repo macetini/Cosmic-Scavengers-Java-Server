@@ -1,11 +1,11 @@
-package com.cosmic.scavengers.networking.requests.handlers;
+package com.cosmic.scavengers.networking.commands.handlers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.ICommandTextHandler;
-import com.cosmic.scavengers.networking.NetworkTextCommands;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

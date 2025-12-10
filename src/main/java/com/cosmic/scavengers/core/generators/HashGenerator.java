@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.core;
+package com.cosmic.scavengers.core.generators;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

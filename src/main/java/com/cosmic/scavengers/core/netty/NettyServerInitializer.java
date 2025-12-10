@@ -1,8 +1,8 @@
-package com.cosmic.scavengers.networking.netty;
+package com.cosmic.scavengers.core.netty;
 
+import com.cosmic.scavengers.db.services.jooq.UserService;
 import com.cosmic.scavengers.networking.GameChannelHandler;
 import com.cosmic.scavengers.networking.NetworkDispatcher;
-import com.cosmic.scavengers.services.jooq.UserService;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;

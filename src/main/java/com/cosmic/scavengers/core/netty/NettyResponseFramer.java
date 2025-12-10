@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking.netty;
+package com.cosmic.scavengers.core.netty;
 
 import java.nio.ByteOrder;
 

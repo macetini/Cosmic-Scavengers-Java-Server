@@ -1,6 +1,6 @@
 package com.cosmic.scavengers.core;
 
-import com.cosmic.scavengers.networking.NetworkTextCommands;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

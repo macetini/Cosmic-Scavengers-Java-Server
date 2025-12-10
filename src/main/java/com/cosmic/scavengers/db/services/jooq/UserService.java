@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.services.jooq;
+package com.cosmic.scavengers.db.services.jooq;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;

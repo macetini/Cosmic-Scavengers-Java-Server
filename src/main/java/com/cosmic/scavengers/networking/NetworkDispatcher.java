@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.ICommandBinaryHandler;
 import com.cosmic.scavengers.core.ICommandTextHandler;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

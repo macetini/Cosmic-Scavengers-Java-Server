@@ -9,8 +9,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import com.cosmic.scavengers.core.netty.NettyServer;
 import com.cosmic.scavengers.engine.GameEngine;
-import com.cosmic.scavengers.networking.netty.NettyServer;
 
 /**
  * Executes the NettyServer and GameEngine on separate, dedicated threads once

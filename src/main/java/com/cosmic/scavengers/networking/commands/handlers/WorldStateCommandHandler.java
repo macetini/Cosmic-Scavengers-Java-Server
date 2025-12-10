@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking.requests.handlers;
+package com.cosmic.scavengers.networking.commands.handlers;
 
 import java.nio.charset.StandardCharsets;
 
@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.ICommandBinaryHandler;
 import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
-import com.cosmic.scavengers.networking.NetworkBinaryCommands;
-import com.cosmic.scavengers.services.jooq.PlayerInitService;
+import com.cosmic.scavengers.db.services.jooq.PlayerInitService;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
