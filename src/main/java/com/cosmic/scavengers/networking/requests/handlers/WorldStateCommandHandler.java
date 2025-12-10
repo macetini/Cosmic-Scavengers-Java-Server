@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
-import com.cosmic.scavengers.db.repository.jooq.JooqWorldRepository;
 import com.cosmic.scavengers.networking.NetworkBinaryCommands;
+import com.cosmic.scavengers.services.jooq.PlayerInitService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,11 +17,11 @@ import io.netty.channel.ChannelHandlerContext;
 @Component
 public class WorldStateCommandHandler implements ICommandHandler {
 	private static final Logger log = LoggerFactory.getLogger(WorldStateCommandHandler.class);
-	
-	private final JooqWorldRepository worldRepository;
-	
-	public WorldStateCommandHandler(JooqWorldRepository worldRepository) {
-		this.worldRepository = worldRepository;
+
+	private final PlayerInitService playerInitService;
+
+	public WorldStateCommandHandler(PlayerInitService playerInitService) {
+		this.playerInitService = playerInitService;
 	}
 
 	@Override
@@ -31,11 +31,14 @@ public class WorldStateCommandHandler implements ICommandHandler {
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
-		//payload.release();
 		log.info("Handling {} command for channel {}.", getCommand().getLogName(), ctx.channel().id());
+
+		Worlds worlds = playerInitService.getCurrentWorldDataByPlayerId(1L);
+		
+		ByteBuf worldStatePayload = serializeWorldStateData(worlds);
 	}
 
-	public static ByteBuf serializeWorldStateData(Worlds worldData) {
+	private ByteBuf serializeWorldStateData(Worlds worldData) {
 		if (worldData == null) {
 			throw new IllegalArgumentException("WorldData cannot be null.");
 		}

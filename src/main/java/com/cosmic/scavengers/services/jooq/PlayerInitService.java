@@ -3,6 +3,8 @@ package com.cosmic.scavengers.services.jooq;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
@@ -12,21 +14,27 @@ import com.cosmic.scavengers.db.repository.jooq.JooqWorldRepository;
 
 @Service
 public class PlayerInitService {
-	private JooqWorldRepository jooqWorlRepository;
-	private JooqPlayerEntitiyRepository jooqPlayerEntitiyRepository;
+	private static final Logger log = LoggerFactory.getLogger(PlayerInitService.class);
+
+	private JooqWorldRepository jooqWorldRepository;
+	private JooqPlayerEntitiyRepository jooqPlayerEntityRepository;
 
 	public PlayerInitService(JooqWorldRepository jooqWorlRepository,
 			JooqPlayerEntitiyRepository jooqPlayerEntitiyRepository) {
-		this.jooqWorlRepository = jooqWorlRepository;
-		this.jooqPlayerEntitiyRepository = jooqPlayerEntitiyRepository;
+		this.jooqWorldRepository = jooqWorlRepository;
+		this.jooqPlayerEntityRepository = jooqPlayerEntitiyRepository;
+
+		log.info("PlayerInitService initialized with Jooq repositories.");
 	}
 
-	public Optional<Worlds> getCurrentWorldDataByPlayerId(long playerId) {
-		return jooqWorlRepository.getById(1);
+	public Worlds getCurrentWorldDataByPlayerId(long playerId) {
+		Optional<Worlds> worldOptional = jooqWorldRepository.getById(playerId);
+		return worldOptional
+				.orElseThrow(() -> new IllegalStateException("No world data found for player with ID: " + playerId));
 	}
 
 	public List<PlayerEntities> getAllByPlayerId(long playerId) {
-		return jooqPlayerEntitiyRepository.getAllByPlayerId(playerId);
+		return jooqPlayerEntityRepository.getAllByPlayerId(playerId);
 	}
 
 }
