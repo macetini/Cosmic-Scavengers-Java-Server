@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.networking;
+package com.cosmic.scavengers.networking.commands.router;
 
 import java.util.List;
 import java.util.Map;
@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.core.ICommandBinaryHandler;
-import com.cosmic.scavengers.core.ICommandTextHandler;
+import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
+import com.cosmic.scavengers.core.commands.ICommandTextHandler;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
 import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
 
@@ -23,8 +23,8 @@ import jakarta.annotation.PostConstruct;
  * to their dedicated handler classes.
  */
 @Component
-public class NetworkDispatcher {
-	private static final Logger log = LoggerFactory.getLogger(NetworkDispatcher.class);
+public class CommandRouter {
+	private static final Logger log = LoggerFactory.getLogger(CommandRouter.class);
 
 	private Map<NetworkBinaryCommands, ICommandBinaryHandler> binaryCommandsMap;
 	private final List<ICommandBinaryHandler> binaryHandlers;
@@ -32,7 +32,7 @@ public class NetworkDispatcher {
 	private Map<NetworkTextCommands, ICommandTextHandler> textCommandsMap;
 	private final List<ICommandTextHandler> textHandlers;
 
-	public NetworkDispatcher(List<ICommandBinaryHandler> binaryCommands, List<ICommandTextHandler> textCommands) {
+	public CommandRouter(List<ICommandBinaryHandler> binaryCommands, List<ICommandTextHandler> textCommands) {
 		this.binaryHandlers = binaryCommands;
 		this.textHandlers = textCommands;
 	}
@@ -44,11 +44,11 @@ public class NetworkDispatcher {
 	public void init() {
 		binaryCommandsMap = binaryHandlers.stream()
 				.collect(Collectors.toMap(ICommandBinaryHandler::getCommand, Function.identity()));
-		log.info("Initialized Network Dispatcher with {} Binary handlers.", binaryCommandsMap.size());
+		log.info("Initialized Network Command Router with {} Binary handlers.", binaryCommandsMap.size());
 
 		textCommandsMap = textHandlers.stream()
 				.collect(Collectors.toMap(ICommandTextHandler::getCommand, Function.identity()));
-		log.info("Initialized Network Dispatcher with {} Text handlers.", textCommandsMap.size());
+		log.info("Initialized Network Command Router with {} Text handlers.", textCommandsMap.size());
 	}
 
 	/**
@@ -61,34 +61,37 @@ public class NetworkDispatcher {
 	 * @param payload     The message payload.
 	 * 
 	 */
-	public void dispatchBinary(short commandCode, ChannelHandlerContext ctx, ByteBuf payload) {
+	public void route(short commandCode, ChannelHandlerContext ctx, ByteBuf payload) {
 		NetworkBinaryCommands command = NetworkBinaryCommands.fromCode(commandCode);
-
 		if (command == null) {
 			log.warn("Received unknown command code: 0x{}. Dropping payload.",
 					Integer.toHexString(commandCode & 0xFFFF));
-			payload.release(); // TODO: Confirm if this is needed.
+			payload.release();
 			return;
 		}
 
 		ICommandBinaryHandler handler = binaryCommandsMap.get(command);
 
+		log.info("Routing binary command: {}", command.getLogName());
+
 		if (handler != null) {
 			handler.handle(ctx, payload);
 		} else {
 			log.warn("No handler implemented for command: {}", command.getLogName());
-			// payload.release();
+			payload.release();
 		}
 	}
 
-	public void dispatchText(String commandCode, ChannelHandlerContext ctx, ByteBuf payload) {
+	public void route(String commandCode, ChannelHandlerContext ctx, ByteBuf payload) {
 		NetworkTextCommands command = NetworkTextCommands.fromCode(commandCode);
 
 		if (command == null) {
 			log.warn("Received unknown text command code: '{}'. Dropping payload.", commandCode);
-			payload.release(); // TODO: Confirm if this is needed.
+			payload.release();
 			return;
 		}
+
+		log.info("Routing text command: {}", command.getLogName());
 
 		ICommandTextHandler handler = textCommandsMap.get(command);
 
@@ -96,7 +99,7 @@ public class NetworkDispatcher {
 			handler.handle(ctx, payload);
 		} else {
 			log.warn("No text handler implemented for command: {}", command.getLogName());
-			// payload.release();
+			payload.release();
 		}
 	}
 

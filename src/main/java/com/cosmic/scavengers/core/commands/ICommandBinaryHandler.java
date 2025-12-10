@@ -1,15 +1,15 @@
-package com.cosmic.scavengers.core;
+package com.cosmic.scavengers.core.commands;
 
-import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
-public interface ICommandTextHandler {
+public interface ICommandBinaryHandler {
 	/**
 	 * Specifies which command this handler is responsible for.
 	 */
-	NetworkTextCommands getCommand();
+	NetworkBinaryCommands getCommand();	
 	
 	void handle(ChannelHandlerContext ctx, ByteBuf payload);
 }

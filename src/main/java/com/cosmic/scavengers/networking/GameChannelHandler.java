@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
 import com.cosmic.scavengers.db.services.jooq.UserService;
+import com.cosmic.scavengers.networking.commands.router.CommandRouter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -35,10 +36,10 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		}
 	}
 
-	private final NetworkDispatcher networkDispatcher;
+	private final CommandRouter networkDispatcher;
 	private final UserService userService;
 
-	public GameChannelHandler(NetworkDispatcher networkDispatcher, UserService userService) {
+	public GameChannelHandler(CommandRouter networkDispatcher, UserService userService) {
 		this.networkDispatcher = networkDispatcher;
 		this.userService = userService;
 	}
@@ -70,47 +71,53 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 		byte messageType = msg.readByte();
 		if (messageType == PacketType.TYPE_TEXT.getValue()) {
-			String message = msg.toString(CharsetUtil.UTF_8).trim();
-			log.info("Received TEXT: {}", message);
-
-			String[] parts = message.split("\\|");
-			if (parts.length == 0) {
-				log.info(message);
-				return;
-			}
-
-			String command = parts[0];
-			switch (command) {
-			case "C_CONNECT":
-				log.info("Client connection handshake received.");
-				sendTextMessage(ctx, "S_CONNECT_OK");
-				break;
-			case "C_LOGIN":
-				handleLogin(ctx, parts);
-				break;
-			case "C_REGISTER":
-				handleRegister(ctx, parts);
-				break;
-			default:
-				log.warn("Unknown text command received: {}", command);
-				sendTextMessage(ctx, "S_ERROR|UNKNOWN_COMMAND");
-				break;
-			}
+			handleTextCommand(ctx, msg);
 		} else if (messageType == PacketType.TYPE_BINARY.getValue()) {
-			handleBinaryGameData(ctx, msg);
+			handleBinaryCommand(ctx, msg);
 		} else {
 			log.warn("Received unknown message type: 0x{}", Integer.toHexString(messageType & 0xFF));
 		}
 	}
 
-	private void handleBinaryGameData(ChannelHandlerContext ctx, ByteBuf msg) {
+	private void handleTextCommand(ChannelHandlerContext ctx, ByteBuf msg) {
+		String message = msg.toString(CharsetUtil.UTF_8).trim();
+		String[] parts = message.split("\\|");
+		if (parts.length == 0) {
+			log.warn("Received empty text command.");
+			return;
+		}
+
+		String command = parts[0];
+		networkDispatcher.route(command, ctx, msg);
+
+		/*
+		switch (command) {
+		case "C_CONNECT":
+			log.info("Client connection handshake received.");
+			sendTextMessage(ctx, "S_CONNECT_OK");
+			break;
+		case "C_LOGIN":
+			handleLogin(ctx, parts);
+			break;
+		case "C_REGISTER":
+			handleRegister(ctx, parts);
+			break;
+		default:
+			log.warn("Unknown text command received: {}", command);
+			sendTextMessage(ctx, "S_ERROR|UNKNOWN_COMMAND");
+			break;
+		}
+		*/
+	}
+
+	private void handleBinaryCommand(ChannelHandlerContext ctx, ByteBuf msg) {
 		if (msg.readableBytes() < 2) {
 			log.warn("Binary payload too short to contain command.");
 			return;
 		}
 
-		short command = msg.readShort();		
-		networkDispatcher.dispatchBinary(command, ctx, msg);
+		short command = msg.readShort();
+		networkDispatcher.route(command, ctx, msg);
 	}
 
 	private void handleLogin(ChannelHandlerContext ctx, String[] parts) {

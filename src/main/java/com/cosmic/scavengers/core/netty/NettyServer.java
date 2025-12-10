@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.db.services.jooq.UserService;
-import com.cosmic.scavengers.networking.NetworkDispatcher;
+import com.cosmic.scavengers.networking.commands.router.CommandRouter;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
@@ -21,10 +21,10 @@ public class NettyServer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(NettyServer.class);
 	private static final int PORT = 8080;
 
-	private final NetworkDispatcher networkDispatcher;
+	private final CommandRouter networkDispatcher;
 	private final UserService userService;
 
-	public NettyServer(NetworkDispatcher networkDispatcher, UserService userService) {
+	public NettyServer(CommandRouter networkDispatcher, UserService userService) {
 		this.networkDispatcher = networkDispatcher;
 		this.userService = userService;
 	}

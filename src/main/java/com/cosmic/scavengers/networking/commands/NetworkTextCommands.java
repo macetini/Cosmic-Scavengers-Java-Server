@@ -5,6 +5,8 @@ import java.util.Map;
 
 public enum NetworkTextCommands {
 	C_CONNECT("C_CONNECT", "Client requests to connect to the server"),
+	S_CONNECT("S_CONNECT", "Server acknowledges client connection"),
+
 	C_LOGIN("C_LOGIN", "Client requests to log in with credentials"),
 	C_REGISTER("C_REGISTER", "Client requests to register a new account");
 
@@ -23,7 +25,7 @@ public enum NetworkTextCommands {
 		this.code = code;
 		this.description = description;
 	}
-	
+
 	public static NetworkTextCommands fromCode(String code) {
 		return BY_CODE.get(code);
 	}
