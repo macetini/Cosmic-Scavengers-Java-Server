@@ -67,7 +67,7 @@ public class NetworkDispatcher {
 			handler.handle(ctx, payload);
 		} else {
 			log.warn("No handler implemented for command: {}", command.getLogName());
-			payload.release();
+			//payload.release();
 		}
 	}
 }

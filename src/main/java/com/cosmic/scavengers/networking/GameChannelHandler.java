@@ -1,16 +1,11 @@
 package com.cosmic.scavengers.networking;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
-import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
-import com.cosmic.scavengers.networking.requests.handlers.WorldStateCommandHandler;
-import com.cosmic.scavengers.services.jooq.PlayerInitService;
 import com.cosmic.scavengers.services.jooq.UserService;
 
 import io.netty.buffer.ByteBuf;
@@ -40,12 +35,12 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		}
 	}
 
+	private final NetworkDispatcher networkDispatcher;
 	private final UserService userService;
-	private final PlayerInitService playerInitService;
 
-	public GameChannelHandler(UserService userService, PlayerInitService playerInitService) {
+	public GameChannelHandler(NetworkDispatcher networkDispatcher, UserService userService) {
+		this.networkDispatcher = networkDispatcher;
 		this.userService = userService;
-		this.playerInitService = playerInitService;
 	}
 
 	@Override
@@ -113,38 +108,11 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 			log.warn("Binary payload too short to contain command.");
 			return;
 		}
-		/*
-		short command = msg.readShort();
-		long playerId;
 
-		switch (command) {
-		case NetworkBinaryCommands.REQUEST_WORLD_STATE:
-			playerId = msg.readLong();
-			Optional<Worlds> playerWorldData = playerInitService.getCurrentWorldDataByPlayerId(playerId);
-			if (playerWorldData.isEmpty()) {
-				log.info("Failed to retrieve world data for player ID {}.", playerId);
-				return;
-			}
-			ByteBuf responseBuffer = WorldStateCommandHandler.serializeWorldStateData(playerWorldData.get());
-			sendBinaryMessage(ctx, responseBuffer, NetworkBinaryCommands.REQUEST_WORLD_STATE);
-			break;
-		case NetworkBinaryCommands.REQUEST_PLAYER_ENTITIES:			
-			playerId = msg.readLong();
-			log.info("Received REQUEST_PLAYER_ENTITIES for player ID {}.", playerId);
-			List<PlayerEntities> playerEntities = playerInitService.getAllByPlayerId(playerId);
-			ByteBuf entitiesBuffer = WorldStateCommandHandler.serializePlayerEntities(playerEntities);
-			sendBinaryMessage(ctx, entitiesBuffer, 	NetworkBinaryCommands.REQUEST_PLAYER_ENTITIES);
-			break;
-		default:
-			log.warn("Received unknown message type: {}", command);
-			break;
-		}
-		*/
+		short command = msg.readShort();
+		networkDispatcher.dispatch(command, ctx, msg);
 	}
 
-	/**
-	 * Handles the client login request. FIXED: Now accepts ChannelHandlerContext.
-	 */
 	private void handleLogin(ChannelHandlerContext ctx, String[] parts) {
 		// Protocol check: C_LOGIN|username|password
 		if (parts.length < 3) {

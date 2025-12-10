@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.services.jooq.PlayerInitService;
+import com.cosmic.scavengers.networking.NetworkDispatcher;
 import com.cosmic.scavengers.services.jooq.UserService;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -21,13 +21,12 @@ public class NettyServer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(NettyServer.class);
 	private static final int PORT = 8080;
 
-	// Dependencies
+	private final NetworkDispatcher networkDispatcher;
 	private final UserService userService;
-	private final PlayerInitService playerInitService;
 
-	public NettyServer(UserService userService, PlayerInitService playerInitService) {
+	public NettyServer(NetworkDispatcher networkDispatcher, UserService userService) {
+		this.networkDispatcher = networkDispatcher;
 		this.userService = userService;
-		this.playerInitService = playerInitService;
 	}
 
 	@Override
@@ -38,7 +37,7 @@ public class NettyServer implements Runnable {
 		try {
 			ServerBootstrap serverBootstrap = new ServerBootstrap();
 			serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-					.childHandler(new NettyServerInitializer(userService, playerInitService));
+					.childHandler(new NettyServerInitializer(networkDispatcher, userService));
 
 			serverBootstrap.bind(PORT).sync().channel().closeFuture().sync();
 			log.info("Netty Server started and listening on port {}", PORT);

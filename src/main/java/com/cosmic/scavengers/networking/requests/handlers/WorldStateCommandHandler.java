@@ -17,12 +17,9 @@ import io.netty.channel.ChannelHandlerContext;
 @Component
 public class WorldStateCommandHandler implements ICommandHandler {
 	private static final Logger log = LoggerFactory.getLogger(WorldStateCommandHandler.class);
-
+	
 	private final JooqWorldRepository worldRepository;
-
-	/**
-	 * Constructor injection for dependencies.
-	 */
+	
 	public WorldStateCommandHandler(JooqWorldRepository worldRepository) {
 		this.worldRepository = worldRepository;
 	}
@@ -34,7 +31,7 @@ public class WorldStateCommandHandler implements ICommandHandler {
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
-		payload.release();
+		//payload.release();
 		log.info("Handling {} command for channel {}.", getCommand().getLogName(), ctx.channel().id());
 	}
 
