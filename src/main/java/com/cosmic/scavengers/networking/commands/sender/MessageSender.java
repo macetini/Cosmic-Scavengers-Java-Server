@@ -27,10 +27,10 @@ public class MessageSender {
 			return;
 		}
 
-		ByteBuf messagePayload = Unpooled.copiedBuffer(message, StandardCharsets.UTF_8);
+		final ByteBuf messagePayload = Unpooled.copiedBuffer(message, StandardCharsets.UTF_8);
 
 		// 1 Byte (Type) + N Bytes (Payload)
-		ByteBuf finalPayload = Unpooled.buffer(Byte.BYTES + messagePayload.readableBytes());
+		final ByteBuf finalPayload = Unpooled.buffer(Byte.BYTES + messagePayload.readableBytes());
 
 		finalPayload.writeByte(CommandType.TYPE_TEXT.getValue()); // 1 Byte: Protocol Type (0x01)
 		finalPayload.writeBytes(messagePayload); // N bytes: Actual Text Payload
@@ -51,40 +51,36 @@ public class MessageSender {
 	 */
 	public void sendBinaryMessage(ChannelHandlerContext ctx, ByteBuf payload, short command) {
 		if (ctx == null || payload == null) {
-			if (payload != null)
-				payload.release(); // Ensure we don't leak if only payload is present
+			if (payload != null) {
+				payload.release();
+			}
 			log.warn("Attempted to send binary message but context or payload was null.");
 			return;
 		}
 
-		// Calculate total required buffer size
 		// Header size: 1 (Type) + 2 (Command) + 4 (Length) = 7 bytes
-		final int HEADER_SIZE = Byte.BYTES + Short.BYTES + Integer.BYTES;
+		final int headerSize = Byte.BYTES + Short.BYTES + Integer.BYTES;
 
-		int payloadSize = payload.readableBytes();
-		int totalSize = HEADER_SIZE + payloadSize;
+		// Payload size: N bytes
+		final int payloadSize = payload.readableBytes();
+		
+		// Total size = Header + Payload
+		final int totalSize = headerSize + payloadSize;
 
-		// Create the final buffer
-		ByteBuf finalPayload = Unpooled.buffer(totalSize);
+		final ByteBuf finalPayload = Unpooled.buffer(totalSize); // Final buffer
 
-		// 1. Write Header
+		// Write Header
 		finalPayload.writeByte(CommandType.TYPE_BINARY.getValue()); // 1 Byte: Protocol Type (0x02)
 		finalPayload.writeShort(command); // 2 Byte: Command
 		finalPayload.writeInt(payloadSize); // 4 Byte: Payload Length N
+		
+		 // Write N bytes Payload
+		finalPayload.writeBytes(payload);
 
-		// 2. Write Payload
-		finalPayload.writeBytes(payload); // N bytes: Actual Payload
+		payload.release(); // Release the original/old payload buffer
 
-		// CRITICAL: Release the original payload buffer, as its data has been copied
-		// into finalPayload.
-		payload.release();
+		log.info("Sending BINARY command '0x{}' - size '{}' bytes", finalPayload.readableBytes(), payloadSize);
 
-		log.info("Sending BINARY command 0x{} of size {} bytes (payload: {}).", Integer.toHexString(command & 0xFFFF),
-				finalPayload.readableBytes(), payloadSize);
-
-		// Use the passed ctx to ensure the response goes to the correct channel
 		ctx.writeAndFlush(finalPayload);
-
-		// Note: finalPayload is managed by Netty after writeAndFlush completes.
 	}
 }
