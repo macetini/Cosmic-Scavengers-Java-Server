@@ -64,13 +64,16 @@ public class CommandRouter {
 	 * 
 	 */
 	public void route(ChannelHandlerContext ctx, ByteBuf command) {
+		//TODO: OCP violation here, needs refactor.
 		byte commandType = command.readByte();
 		if (commandType == CommandType.TYPE_TEXT.getValue()) {
 			routeTextCommand(ctx, command);
 		} else if (commandType == CommandType.TYPE_BINARY.getValue()) {
 			routeBinaryCommand(ctx, command);
 		} else {
-			log.warn("Received unknown message type: 0x{}", Integer.toHexString(commandType & 0xFF));
+			if (log.isWarnEnabled()) {
+				log.warn("Received unknown message type: 0x{}", Integer.toHexString(commandType & 0xFF));
+			}
 		}
 	}
 
@@ -89,11 +92,11 @@ public class CommandRouter {
 			payload.release();
 			return;
 		}
-		
+
 		log.info("Routing text command: {}", command.getLogName());
 		ICommandTextHandler handler = textCommandsMap.get(command);
 
-		if (handler != null) {			
+		if (handler != null) {
 			handler.handle(ctx, parts);
 		} else {
 			log.warn("No text handler implemented for command: {}", command.getLogName());
@@ -117,10 +120,10 @@ public class CommandRouter {
 			payload.release();
 			return;
 		}
-		
+
 		ICommandBinaryHandler handler = binaryCommandsMap.get(command);
 		log.info("Routing binary command: {}", command.getLogName());
-		
+
 		if (handler != null) {
 			handler.handle(ctx, payload);
 		} else {

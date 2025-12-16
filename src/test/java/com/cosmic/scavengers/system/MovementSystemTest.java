@@ -26,7 +26,7 @@ import com.cosmic.scavengers.component.Position;
 import com.cosmic.scavengers.system.MovementSystem.DisplacementVector;
 import com.cosmic.scavengers.system.MovementSystem.DistanceDelta;
 import com.cosmic.scavengers.system.MovementSystem.NormalizedDirection;
-import com.cosmic.scavengers.util.DecimalUtils;
+import com.cosmic.scavengers.utils.DecimalUtils;
 
 import dev.dominion.ecs.api.Dominion;
 import dev.dominion.ecs.api.Entity;

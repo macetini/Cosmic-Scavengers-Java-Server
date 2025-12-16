@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.networking.commands.handlers.binary;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,7 +12,10 @@ import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.db.services.jooq.PlayerInitService;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
 import com.cosmic.scavengers.networking.commands.sender.MessageSender;
+import com.cosmic.scavengers.utils.protobuf.ProtobufJsonbUtil;
+import com.cosmic.scavengers.utils.protobuf.ProtobufTimeUtil;
 
+import cosmic.scavengers.generated.PlayerEntityDataOuterClass.PlayerEntityData;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -38,8 +42,36 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 
 		Long playerId = payload.readLong();
 		List<PlayerEntities> entites = playerInitService.getAllByPlayerId(playerId);
-
+		
+		if(entites.isEmpty()) {
+			log.warn("No player entities found for playerId '{}'", playerId);
+			return;
+		}
 		log.info("Found {} entities for player ID {}.", entites.size(), playerId);
+
+		List<PlayerEntityData> protobufEntities = new ArrayList<>();
+		for (PlayerEntities entity : entites) {
+			PlayerEntityData entityData = PlayerEntityData.newBuilder()
+					.setId(entity.getId())
+					.setChunkX(entity.getChunkX())
+					.setChunkY(entity.getChunkY())
+					.setCreatedAt(ProtobufTimeUtil.toProtobufTimestamp(entity.getCreatedAt()))
+					.setEntityType(entity.getEntityType())
+					.setHealth(entity.getHealth())
+					.setPosX(entity.getPosX())
+					.setPosY(entity.getPosY())
+					.setStateData(ProtobufJsonbUtil.toJsonString(entity.getStateData()))
+					.setPlayerId(entity.getPlayerId())
+					.setWorldId(entity.getWorldId())
+					.setUpdatedAt(ProtobufTimeUtil.toProtobufTimestamp(entity.getUpdatedAt()))
+					.setSectorId(entity.getSectorId())
+					.setIsStatic(entity.getIsStatic())
+					.build();
+			
+			protobufEntities.add(entityData);
+		}
+
+		messageSender.sendBinaryProtbufMessage(ctx, protobufEntities, NetworkBinaryCommands.REQUEST_PLAYER_ENTITIES_S.getCode());		
 	}
 
 }

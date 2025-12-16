@@ -1,7 +1,5 @@
 package com.cosmic.scavengers.networking.commands.handlers.binary;
 
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,7 +12,6 @@ import com.cosmic.scavengers.networking.commands.sender.MessageSender;
 
 import cosmic.scavengers.generated.WorldDataOuterClass.WorldData;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
 @Component
@@ -52,36 +49,5 @@ public class WorldStateCommandHandler implements ICommandBinaryHandler {
 				.build();
 				
 		messageSender.sendBinaryProtbufMessage(ctx, worldData, NetworkBinaryCommands.REQUEST_WORLD_STATE_S.getCode());		
-	}
-
-	private ByteBuf serializeWorldStateData(Worlds worldData) {
-		if (worldData == null) {
-			throw new IllegalArgumentException("WorldData cannot be null.");
-		}
-
-		int estimatedSize = 0;
-		estimatedSize += Long.BYTES; // World ID (long)
-		estimatedSize += Integer.BYTES; // World Name Length Prefix (int)
-		estimatedSize += worldData.getWorldName().getBytes(StandardCharsets.UTF_8).length; // World Name (UTF-8 chars, 1
-																							// bytes each)
-		estimatedSize += Long.BYTES; // Map Seed (long)
-		estimatedSize += Integer.BYTES; // Sector Size (int)
-
-		ByteBuf buffer = Unpooled.buffer(estimatedSize);
-
-		// 8 bytes: World ID (long)
-		buffer.writeLong(worldData.getId());
-
-		// Variable Length String: World Name (Length Prefix)
-		byte[] nameBytes = worldData.getWorldName().getBytes(StandardCharsets.UTF_8);
-		buffer.writeInt(nameBytes.length); // 4 bytes for length
-		buffer.writeBytes(nameBytes); // N bytes for data
-		// 8 bytes: Map Seed (long)
-		buffer.writeLong(worldData.getMapSeed());
-		// 4 bytes: Sector Size (int)
-		buffer.writeInt(worldData.getSectorSizeUnits());
-
-		log.info("Serialized world state payload size: {} bytes.", buffer.readableBytes());
-		return buffer;
 	}
 }

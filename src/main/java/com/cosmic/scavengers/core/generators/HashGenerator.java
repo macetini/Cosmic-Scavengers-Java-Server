@@ -3,7 +3,7 @@ package com.cosmic.scavengers.core.generators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.util.SecurityUtils;
+import com.cosmic.scavengers.utils.SecurityUtils;
 
 public class HashGenerator {
 	private static final Logger log = LoggerFactory.getLogger(HashGenerator.class);

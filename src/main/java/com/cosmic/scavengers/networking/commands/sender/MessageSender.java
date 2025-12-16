@@ -1,6 +1,7 @@
 package com.cosmic.scavengers.networking.commands.sender;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,41 @@ public class MessageSender {
 
 		sendBinaryMessage(ctx, serializedPayload, command);
 	}
+	
+	/**
+	 * Serializes and sends a list of Protocol Buffers messages back to the client
+	 * as a binary message. The messages are concatenated together in the payload,
+	 * prefixed by the count of messages.
+	 * 
+	 * @param ctx         The channel context to write the response to.
+	 * @param messageList The list of Protocol Buffers messages to serialize and
+	 *                    send.
+	 * @param command     The command code (short) being sent back.
+	 * 
+	 */
+	public void sendBinaryProtbufMessage(ChannelHandlerContext ctx, List<? extends GeneratedMessage> messageList, short command) {
+		if (ctx == null || messageList == null) {
+			log.warn("Attempted to send protobuf binary message but context or message list was null.");
+			return;
+		}
 
+		// Calculate total size
+		int totalSize = Integer.BYTES; // For storing the count of messages
+		for (GeneratedMessage message : messageList) {
+			totalSize += message.getSerializedSize();
+		}
+
+		ByteBuf serializedPayload = Unpooled.buffer(totalSize);
+		serializedPayload.writeInt(messageList.size()); // Write the count of messages first
+		for (GeneratedMessage message : messageList) {
+			byte[] serializedBytes = message.toByteArray();
+			serializedPayload.writeBytes(serializedBytes);
+		}
+
+		sendBinaryMessage(ctx, serializedPayload, command);
+	}
+	
+	
 	/**
 	 * Sends a binary message back to the client, handling the low-level header
 	 * structure (Type, Command, Length). * @param ctx The channel context to write

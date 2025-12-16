@@ -1,9 +1,10 @@
 syntax = "proto3";
 
-package cosmic.scavengers.generated;
+// protoc -I=./src/main/proto --csharp_out=C:/Development/workspace/unity3d/Cosmic-Scavengers-Unity-Client/Assets/Scripts/CosmicScavengers/Protobuf/WorldData/ world_data.proto
+
+package CosmicScavengers.Networking.Protobuf.WorldData;
 
 // --- World Data Structures for Serialization ---
-// protoc -I=./src/main/proto --csharp_out=C:/Development/workspace/unity3d/Cosmic-Scavengers-Unity-Client/Assets/Protobuf/ world_data.proto
 
 // Mirrors the jOOQ Worlds POJO for network transmission.
 message WorldData {

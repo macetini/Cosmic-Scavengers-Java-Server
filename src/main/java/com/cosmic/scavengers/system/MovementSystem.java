@@ -1,6 +1,6 @@
 package com.cosmic.scavengers.system;
 
-import static com.cosmic.scavengers.util.DecimalUtils.ARITHMETIC;
+import static com.cosmic.scavengers.utils.DecimalUtils.ARITHMETIC;
 
 import org.decimal4j.api.Decimal;
 import org.decimal4j.scale.Scale4f;
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cosmic.scavengers.component.Movement;
 import com.cosmic.scavengers.component.Position;
-import com.cosmic.scavengers.util.DecimalUtils;
+import com.cosmic.scavengers.utils.DecimalUtils;
 
 import dev.dominion.ecs.api.Dominion;
 import dev.dominion.ecs.api.Entity;
