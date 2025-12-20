@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
 import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
 import com.cosmic.scavengers.db.services.jooq.PlayerInitService;
-import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
-import com.cosmic.scavengers.networking.commands.sender.MessageSender;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
+import com.cosmic.scavengers.networking.commands.sender.MessageDispatcher;
 
 import CosmicScavengers.Networking.Protobuf.WorldData.WorldDataOuterClass.WorldData;
 import io.netty.buffer.ByteBuf;
@@ -18,17 +18,17 @@ import io.netty.channel.ChannelHandlerContext;
 public class WorldStateCommandHandler implements ICommandBinaryHandler {
 	private static final Logger log = LoggerFactory.getLogger(WorldStateCommandHandler.class);
 
-	private final MessageSender messageSender;
+	private final MessageDispatcher messageDispatcher;
 	private final PlayerInitService playerInitService;
 
-	public WorldStateCommandHandler(MessageSender messageSender, PlayerInitService playerInitService) {
-		this.messageSender = messageSender;
+	public WorldStateCommandHandler(MessageDispatcher messageDispatcher, PlayerInitService playerInitService) {
+		this.messageDispatcher = messageDispatcher;
 		this.playerInitService = playerInitService;
 	}
 
 	@Override
-	public NetworkBinaryCommands getCommand() {
-		return NetworkBinaryCommands.REQUEST_WORLD_STATE_C;
+	public NetworkBinaryCommand getCommand() {
+		return NetworkBinaryCommand.REQUEST_WORLD_STATE_C;
 	}
 
 	@Override
@@ -48,6 +48,6 @@ public class WorldStateCommandHandler implements ICommandBinaryHandler {
 				.setGenerationConfigJson(worlds.getGenerationConfig().data())
 				.build();
 				
-		messageSender.sendBinaryProtobufMessage(ctx, worldData, NetworkBinaryCommands.REQUEST_WORLD_STATE_S.getCode());		
+		messageDispatcher.sendBinaryProtobufMessage(ctx, worldData, NetworkBinaryCommand.REQUEST_WORLD_STATE_S.getCode());		
 	}
 }

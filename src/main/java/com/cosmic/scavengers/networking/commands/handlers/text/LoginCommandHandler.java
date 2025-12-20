@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.core.commands.ICommandTextHandler;
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
 import com.cosmic.scavengers.db.services.jooq.UserService;
-import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
-import com.cosmic.scavengers.networking.commands.sender.MessageSender;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
+import com.cosmic.scavengers.networking.commands.sender.MessageDispatcher;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -18,17 +18,17 @@ import io.netty.channel.ChannelHandlerContext;
 public class LoginCommandHandler implements ICommandTextHandler {
 	private static final Logger log = LoggerFactory.getLogger(LoginCommandHandler.class);
 
-	private final MessageSender messageSender;
+	private final MessageDispatcher messageDispatcher;
 	private final UserService userService;
 
-	public LoginCommandHandler(MessageSender messageSender, UserService userService) {
-		this.messageSender = messageSender;
+	public LoginCommandHandler(MessageDispatcher messageDispatcher, UserService userService) {
+		this.messageDispatcher = messageDispatcher;
 		this.userService = userService;
 	}
 
 	@Override
-	public NetworkTextCommands getCommand() {
-		return NetworkTextCommands.C_LOGIN;
+	public NetworkTextCommand getCommand() {
+		return NetworkTextCommand.C_LOGIN;
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class LoginCommandHandler implements ICommandTextHandler {
 		
 		if (payload.length < 3) { // Expecting at least 3 parts: COMMAND|username|password
 			log.warn("Invalid login payload format from channel {}.", ctx.channel().id());
-			messageSender.sendTextMessage(ctx, NetworkTextCommands.S_LOGIN_FAIL + "|INVALID_FORMAT");
+			messageDispatcher.sendTextMessage(ctx, NetworkTextCommand.S_LOGIN_FAIL + "|INVALID_FORMAT");
 			return;
 		}
 		String username = payload[1];
@@ -47,10 +47,10 @@ public class LoginCommandHandler implements ICommandTextHandler {
 		if (playerOptional.isPresent()) {
 			Players player = playerOptional.get();
 			log.info("Player {} (ID: {}) logged in successfully.", username, player.getId());
-			messageSender.sendTextMessage(ctx, NetworkTextCommands.S_LOGIN_OK + "|" + player.getId());
+			messageDispatcher.sendTextMessage(ctx, NetworkTextCommand.S_LOGIN_PASS + "|" + player.getId());
 		} else {
 			log.warn("Login failed for user: {}", username);
-			messageSender.sendTextMessage(ctx, NetworkTextCommands.S_LOGIN_FAIL + "|INVALID_CREDENTIALS");
+			messageDispatcher.sendTextMessage(ctx, NetworkTextCommand.S_LOGIN_FAIL + "|INVALID_CREDENTIALS");
 		}
 	}
 

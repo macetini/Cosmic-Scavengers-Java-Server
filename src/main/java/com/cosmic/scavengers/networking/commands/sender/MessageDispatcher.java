@@ -21,8 +21,8 @@ import io.netty.channel.ChannelHandlerContext;
  * low-level protocol structure.
  */
 @Component
-public class MessageSender {
-	private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
+public class MessageDispatcher {
+	private static final Logger log = LoggerFactory.getLogger(MessageDispatcher.class);
 
 	public void sendTextMessage(ChannelHandlerContext ctx, String message) {
 		if (ctx == null || message == null) {

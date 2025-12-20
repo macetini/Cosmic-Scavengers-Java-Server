@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
 import com.cosmic.scavengers.core.commands.ICommandTextHandler;
-import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
-import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
 import com.cosmic.scavengers.networking.commands.router.meta.CommandType;
 
 import io.netty.buffer.ByteBuf;
@@ -28,10 +28,10 @@ import jakarta.annotation.PostConstruct;
 public class CommandRouter {
 	private static final Logger log = LoggerFactory.getLogger(CommandRouter.class);
 
-	private Map<NetworkBinaryCommands, ICommandBinaryHandler> binaryCommandsMap;
+	private Map<NetworkBinaryCommand, ICommandBinaryHandler> binaryCommandsMap;
 	private final List<ICommandBinaryHandler> binaryHandlers;
 
-	private Map<NetworkTextCommands, ICommandTextHandler> textCommandsMap;
+	private Map<NetworkTextCommand, ICommandTextHandler> textCommandsMap;
 	private final List<ICommandTextHandler> textHandlers;
 
 	public CommandRouter(List<ICommandBinaryHandler> binaryCommands, List<ICommandTextHandler> textCommands) {
@@ -85,7 +85,7 @@ public class CommandRouter {
 			return;
 		}
 		String commandCode = parts[0];
-		NetworkTextCommands command = NetworkTextCommands.fromCode(commandCode);
+		NetworkTextCommand command = NetworkTextCommand.fromCode(commandCode);
 
 		if (command == null) {
 			log.warn("Received unknown text command code: '{}'. Dropping payload.", commandCode);
@@ -111,7 +111,7 @@ public class CommandRouter {
 		}
 
 		short commandCode = payload.readShort();
-		NetworkBinaryCommands command = NetworkBinaryCommands.fromCode(commandCode);
+		NetworkBinaryCommand command = NetworkBinaryCommand.fromCode(commandCode);
 		if (command == null) {
 			if (log.isWarnEnabled()) { // Check if WARN is enabled before performing HexString conversion
 				log.warn("Received unknown command code: 0x{}. Dropping payload.",

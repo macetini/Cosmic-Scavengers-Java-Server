@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.core.commands.ICommandTextHandler;
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
 import com.cosmic.scavengers.db.services.jooq.UserService;
-import com.cosmic.scavengers.networking.commands.NetworkTextCommands;
-import com.cosmic.scavengers.networking.commands.sender.MessageSender;
+import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
+import com.cosmic.scavengers.networking.commands.sender.MessageDispatcher;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -18,24 +18,24 @@ import io.netty.channel.ChannelHandlerContext;
 public class RegisterCommandHandler implements ICommandTextHandler {
 	private static final Logger log = LoggerFactory.getLogger(RegisterCommandHandler.class);
 
-	private final MessageSender messageSender;
+	private final MessageDispatcher messageDispatcher;
 	private final UserService userService;
 
-	public RegisterCommandHandler(MessageSender messageSender, UserService userService) {
-		this.messageSender = messageSender;
+	public RegisterCommandHandler(MessageDispatcher messageDispatcher, UserService userService) {
+		this.messageDispatcher = messageDispatcher;
 		this.userService = userService;
 	}
 
 	@Override
-	public NetworkTextCommands getCommand() {
-		return NetworkTextCommands.C_REGISTER;
+	public NetworkTextCommand getCommand() {
+		return NetworkTextCommand.C_REGISTER;
 	}
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, String[] payload) {
 		log.info("Handling {} command for channel {}.", getCommand().getLogName(), ctx.channel().id());
 		if (payload.length < 3) {
-			messageSender.sendTextMessage(ctx, "S_REGISTER_FAIL|INVALID_FORMAT");
+			messageDispatcher.sendTextMessage(ctx, "S_REGISTER_FAIL|INVALID_FORMAT");
 			return;
 		}
 		String username = payload[1];
@@ -45,10 +45,10 @@ public class RegisterCommandHandler implements ICommandTextHandler {
 		if (playerOptional.isPresent()) {
 			Players player = playerOptional.get();
 			log.info("Player {} (ID: {}) registered and logged in.", username, player.getId());
-			messageSender.sendTextMessage(ctx, "S_REGISTER_OK|" + player.getId());
+			messageDispatcher.sendTextMessage(ctx, "S_REGISTER_OK|" + player.getId());
 		} else {
 			log.warn("Registration failed for user: {}. Username likely taken.", username);
-			messageSender.sendTextMessage(ctx, "S_REGISTER_FAIL|USERNAME_TAKEN");
+			messageDispatcher.sendTextMessage(ctx, "S_REGISTER_FAIL|USERNAME_TAKEN");
 		}
 	}
 

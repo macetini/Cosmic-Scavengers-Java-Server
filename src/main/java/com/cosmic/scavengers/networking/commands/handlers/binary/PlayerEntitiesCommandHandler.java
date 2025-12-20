@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.db.services.jooq.PlayerInitService;
-import com.cosmic.scavengers.networking.commands.NetworkBinaryCommands;
-import com.cosmic.scavengers.networking.commands.sender.MessageSender;
+import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
+import com.cosmic.scavengers.networking.commands.sender.MessageDispatcher;
 import com.cosmic.scavengers.utils.protobuf.ProtobufJsonbUtil;
 import com.cosmic.scavengers.utils.protobuf.ProtobufTimeUtil;
 
@@ -23,17 +23,17 @@ import io.netty.channel.ChannelHandlerContext;
 public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 	private static final Logger log = LoggerFactory.getLogger(PlayerEntitiesCommandHandler.class);
 
-	private final MessageSender messageSender;
+	private final MessageDispatcher messageDispatcher;
 	private final PlayerInitService playerInitService;
 
-	public PlayerEntitiesCommandHandler(MessageSender messageSender, PlayerInitService playerInitService) {
-		this.messageSender = messageSender;
+	public PlayerEntitiesCommandHandler(MessageDispatcher messageDispatcher, PlayerInitService playerInitService) {
+		this.messageDispatcher = messageDispatcher;
 		this.playerInitService = playerInitService;
 	}
 
 	@Override
-	public NetworkBinaryCommands getCommand() {
-		return NetworkBinaryCommands.REQUEST_PLAYER_ENTITIES_C;
+	public NetworkBinaryCommand getCommand() {
+		return NetworkBinaryCommand.REQUEST_PLAYER_ENTITIES_C;
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 		}
 		
 		PlayerEntityListData playerEntityListData = listBuilder.build();
-		messageSender.sendBinaryProtobufMessage(ctx, playerEntityListData, NetworkBinaryCommands.REQUEST_PLAYER_ENTITIES_S.getCode());		
+		messageDispatcher.sendBinaryProtobufMessage(ctx, playerEntityListData, NetworkBinaryCommand.REQUEST_PLAYER_ENTITIES_S.getCode());		
 	}
 
 }
