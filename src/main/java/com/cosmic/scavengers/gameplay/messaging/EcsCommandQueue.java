@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DominionCommandQueue {
+public class EcsCommandQueue {
 	private final ConcurrentLinkedQueue<EcsCommand> queue = new ConcurrentLinkedQueue<>();
 
 	public void submit(EcsCommand request) {

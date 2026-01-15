@@ -9,9 +9,8 @@ import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.dominion.components.Owner;
 import com.cosmic.scavengers.dominion.intents.MoveIntent;
 import com.cosmic.scavengers.dominion.tags.StaticTag;
-import com.cosmic.scavengers.gameplay.messaging.DominionCommandQueue;
 import com.cosmic.scavengers.gameplay.messaging.EcsCommand;
-import com.cosmic.scavengers.gameplay.messaging.MoveCommand;
+import com.cosmic.scavengers.gameplay.messaging.EcsCommandQueue;
 import com.cosmic.scavengers.gameplay.registry.EntityRegistry;
 import com.cosmic.scavengers.gameplay.services.entities.data.MoveRequestData;
 
@@ -22,13 +21,9 @@ public class EntityActionService {
 	private static final Logger log = LoggerFactory.getLogger(EntityActionService.class);
 
 	private final EntityRegistry entityRegistry;
-	private final DominionCommandQueue dominionCommandQueue;
+	private final EcsCommandQueue dominionCommandQueue;	
 
-	// Anti-cheat constants (These could eventually come from a config or DB)
-	private static final double MAX_ALLOWED_SPEED = 50.0;
-	private static final double MAX_TELEPORT_DISTANCE = 100.0;
-
-	public EntityActionService(EntityRegistry entityRegistry, DominionCommandQueue dominionCommandQueue) {
+	public EntityActionService(EntityRegistry entityRegistry, EcsCommandQueue dominionCommandQueue) {
 		this.entityRegistry = entityRegistry;
 		this.dominionCommandQueue = dominionCommandQueue;
 	}
@@ -57,10 +52,6 @@ public class EntityActionService {
 			log.warn("Move rejected: Entity {} is static.", data.entityId());
 			return;
 		}
-
-		// liveEntity.add(new MoveIntent(data.targetX(), data.targetY(), data.targetZ(),
-		// data.movementSpeed()));
-		// MoveCommand command = new MoveCommand(playerId, data.entityId(), intent);
 
 		MoveIntent intent = new MoveIntent(data.targetX(), data.targetY(), data.targetZ(), data.movementSpeed());
 		EcsCommand ecsCommand = new EcsCommand(playerId, data.entityId(), intent);

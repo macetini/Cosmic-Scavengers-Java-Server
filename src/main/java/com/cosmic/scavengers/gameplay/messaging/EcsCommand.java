@@ -7,7 +7,7 @@ package com.cosmic.scavengers.gameplay.messaging;
 public class EcsCommand {
 	private long playerId;
 	private long entityId;
-	private Object payload;
+	private EcsIntent payload;
 
 	public EcsCommand(long playerId, long entityId, EcsIntent payload) {
 		this.playerId = playerId;
@@ -23,7 +23,7 @@ public class EcsCommand {
 		return entityId;
 	}
 
-	public Object payload() {
+	public EcsIntent payload() {
 		return payload;
 	}
 }
