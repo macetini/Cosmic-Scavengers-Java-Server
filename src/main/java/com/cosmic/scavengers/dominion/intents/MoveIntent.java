@@ -3,8 +3,11 @@ package com.cosmic.scavengers.dominion.intents;
 import org.decimal4j.api.Decimal;
 import org.decimal4j.scale.Scale4f;
 
-import com.cosmic.scavengers.gameplay.messaging.EcsIntent;
+import com.cosmic.scavengers.dominion.intents.meta.EcsIntent;
 
-public record MoveIntent(Decimal<Scale4f> targetX, Decimal<Scale4f> targetY, Decimal<Scale4f> targetZ,
+public record MoveIntent(
+		Decimal<Scale4f> targetX, 
+		Decimal<Scale4f> targetY, 
+		Decimal<Scale4f> targetZ,
 		Decimal<Scale4f> speed) implements EcsIntent {
 }

@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.gameplay.messaging;
+package com.cosmic.scavengers.dominion.messaging;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

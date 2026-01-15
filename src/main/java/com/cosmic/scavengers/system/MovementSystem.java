@@ -71,7 +71,7 @@ public class MovementSystem implements Runnable {
 	 *                 Movement components (must not be null)
 	 */
 	public MovementSystem(Dominion dominion) {
-		this.dominion = dominion;
+		this.dominion = dominion;		
 	}
 
 	/**

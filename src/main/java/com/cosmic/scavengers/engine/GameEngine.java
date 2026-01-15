@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.system.CommandHandlerSystem;
-import com.cosmic.scavengers.system.IntentProcessorSystem;
+import com.cosmic.scavengers.system.EcsCommandQueueProcessing;
 import com.cosmic.scavengers.system.MovementSystem;
 
 /**
@@ -31,12 +30,10 @@ public class GameEngine implements Runnable {
 	private boolean running = true;
 
 	public GameEngine(
-			CommandHandlerSystem commandHandlerSystem, 
-			IntentProcessorSystem intentProcessorSystem,
+			EcsCommandQueueProcessing commandHandlerSystem, 			
 			MovementSystem movementSystem) {
-		systems.add(commandHandlerSystem);
-		systems.add(intentProcessorSystem);
-		// systems.add(movementSystem);
+		systems.add(commandHandlerSystem);		
+		systems.add(movementSystem);
 	}
 
 	@Override

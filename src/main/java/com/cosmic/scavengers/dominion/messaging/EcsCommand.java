@@ -1,4 +1,6 @@
-package com.cosmic.scavengers.gameplay.messaging;
+package com.cosmic.scavengers.dominion.messaging;
+
+import com.cosmic.scavengers.dominion.intents.meta.EcsIntent;
 
 /**
  * The base contract for any action that modifies the Dominion world. Permits

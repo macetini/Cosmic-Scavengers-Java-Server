@@ -6,15 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
-import com.cosmic.scavengers.dominion.components.Owner;
 import com.cosmic.scavengers.dominion.intents.MoveIntent;
-import com.cosmic.scavengers.dominion.tags.StaticTag;
-import com.cosmic.scavengers.gameplay.messaging.EcsCommand;
-import com.cosmic.scavengers.gameplay.messaging.EcsCommandQueue;
+import com.cosmic.scavengers.dominion.messaging.EcsCommand;
+import com.cosmic.scavengers.dominion.messaging.EcsCommandQueue;
 import com.cosmic.scavengers.gameplay.registry.EntityRegistry;
 import com.cosmic.scavengers.gameplay.services.entities.data.MoveRequestData;
-
-import dev.dominion.ecs.api.Entity;
 
 @Service
 public class EntityActionService {
@@ -35,7 +31,7 @@ public class EntityActionService {
 	public void processMoveRequest(long playerId, MoveRequestData data) {
 		log.info("Processing move request for Entity {}.", data.entityId());
 
-		Entity liveEntity = entityRegistry.getLiveEntity(data.entityId());
+		/*Entity liveEntity = entityRegistry.getLiveEntity(data.entityId());
 		if (liveEntity == null) {
 			log.warn("Move rejected: Entity {} not found in registry.", data.entityId());
 			return;
@@ -51,7 +47,7 @@ public class EntityActionService {
 		if (liveEntity.has(StaticTag.class)) {
 			log.warn("Move rejected: Entity {} is static.", data.entityId());
 			return;
-		}
+		}*/
 
 		MoveIntent intent = new MoveIntent(data.targetX(), data.targetY(), data.targetZ(), data.movementSpeed());
 		EcsCommand ecsCommand = new EcsCommand(playerId, data.entityId(), intent);
