@@ -1,13 +1,14 @@
 package com.cosmic.scavengers.engine;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.broadcast.IStateBroadcaster;
+import com.cosmic.scavengers.system.CommandHandlerSystem;
+import com.cosmic.scavengers.system.IntentProcessorSystem;
 import com.cosmic.scavengers.system.MovementSystem;
-
-import dev.dominion.ecs.api.Dominion;
 
 /**
  * The core game loop component. Runs on a dedicated thread, executes ECS
@@ -20,63 +21,76 @@ import dev.dominion.ecs.api.Dominion;
 @Component
 public class GameEngine implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(GameEngine.class);
-	
-	// Align with MovementSystem.TICK_DELTA (0.1s)
-	private static final int TICK_RATE_MS = 100; // 100ms -> 10Hz
+	// The fixed step our systems expect (0.1 seconds)
+	private static final double TICK_DELTA_S = 0.1;
+	// Convert that step to nanoseconds for precise comparison
+	private static final long TICK_DELTA_NS = (long) (TICK_DELTA_S * 1_000_000_000L);
 
-	private final Dominion dominion;
-	private final MovementSystem movementSystem;
-	private final IStateBroadcaster stateBroadcaster;
+	private final List<Runnable> systems = new java.util.ArrayList<>();
 
-	// Spring injects Dominion (from GameConfig), MovementSystem (Component),
-	// and IStateBroadcaster (from NetworkingConfig).
-	public GameEngine(Dominion dominion, MovementSystem movementSystem, IStateBroadcaster stateBroadcaster) {
-		this.dominion = dominion;
-		this.movementSystem = movementSystem;
-		this.stateBroadcaster = stateBroadcaster;
+	private boolean running = true;
+
+	public GameEngine(
+			CommandHandlerSystem commandHandlerSystem, 
+			IntentProcessorSystem intentProcessorSystem,
+			MovementSystem movementSystem) {
+		systems.add(commandHandlerSystem);
+		systems.add(intentProcessorSystem);
+		// systems.add(movementSystem);
 	}
 
 	@Override
 	public void run() {
-		log.info("GameEngine thread started. Entering fixed-timestep game loop...");
+		log.info("GameEngine started with Accumulator Timestep ({}s per tick)", TICK_DELTA_S);
 
-		long nextGameTick = System.currentTimeMillis();
-		
-		while (!Thread.currentThread().isInterrupted()) {
-			long currentTime = System.currentTimeMillis();
+		long lastTime = System.nanoTime();
+		long accumulator = 0;
 
-			// 1. Wait until the next scheduled tick time
-			long sleepTime = nextGameTick - currentTime;
-			if (sleepTime > 0) {
-				try {
-					Thread.sleep(sleepTime);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt(); // Restore interrupt status
-					log.info("GameEngine thread interrupted and shutting down.");
-					break;
-				}
-			} else {
-				// If the loop is running behind, log a warning
-				if (currentTime > nextGameTick + TICK_RATE_MS) {
-					log.warn("Game tick took too long and fell behind schedule by {}ms.", currentTime - nextGameTick);
-				}
+		while (running && !Thread.currentThread().isInterrupted()) {
+			long currentTime = System.nanoTime();
+			long frameTime = currentTime - lastTime;
+			lastTime = currentTime;
+
+			// Cap frameTime to avoid "Spiral of Death" if server hangs for seconds
+			if (frameTime > 250_000_000L) { // max 0.25s per loop
+				frameTime = 250_000_000L;
 			}
-			executeGameTick();
-			nextGameTick += TICK_RATE_MS;
+
+			accumulator += frameTime;
+			// Consume all accumulated time in fixed TICK_DELTA_NS steps
+			while (accumulator >= TICK_DELTA_NS) {
+				executeGameTick();
+				accumulator -= TICK_DELTA_NS;
+			}
+
+			// Sleep a tiny bit to prevent 100% CPU usage
+			// This is "relaxed" sleep; the accumulator handles the precision
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
 	private void executeGameTick() {
 		try {
-			movementSystem.run();
+			for (Runnable system : systems) {
+				system.run();
+			}
+
+			// Note: In this pattern, we broadcast after the systems run
+			// If you want to save bandwidth, you can move stateBroadcaster
+			// outside the while loop so it only sends the latest state after
+			// all catch-up ticks are done.
+			// stateBroadcaster.broadcastCurrentState(dominion);
 		} catch (Exception e) {
-			log.error("An error occurred during ECS system execution.", e);
+			log.error("Error in game tick execution", e);
+			this.stop();
 		}
-		
-		try {
-			stateBroadcaster.broadcastCurrentState(dominion);
-		} catch (Exception e) {
-			log.error("An error occurred during state broadcast.", e);
-		}
+	}
+
+	public void stop() {
+		this.running = false;
 	}
 }

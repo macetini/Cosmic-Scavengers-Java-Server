@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.component;
+package com.cosmic.scavengers.dominion.components;
 
 /**
  * Component for the entity's current health and maximum health capacity.

@@ -6,9 +6,10 @@ import org.decimal4j.api.Decimal;
 import org.decimal4j.scale.Scale4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.component.Movement;
-import com.cosmic.scavengers.component.Position;
+import com.cosmic.scavengers.dominion.components.Movement;
+import com.cosmic.scavengers.dominion.components.Position;
 import com.cosmic.scavengers.utils.DecimalUtils;
 
 import dev.dominion.ecs.api.Dominion;
@@ -17,38 +18,42 @@ import dev.dominion.ecs.api.Entity;
 /**
  * Handles movement for entities in the ECS world.
  *
- * <p>This system performs deterministic, fixed-timestep movement using fixed-point
+ * <p>
+ * This system performs deterministic, fixed-timestep movement using fixed-point
  * arithmetic (Decimal4j) to avoid floating point nondeterminism. It queries the
- * provided {@link Dominion} instance for entities that have both {@link Position}
- * and {@link Movement} components and advances their positions by a single tick
- * amount when {@link #run()} is invoked.
+ * provided {@link Dominion} instance for entities that have both
+ * {@link Position} and {@link Movement} components and advances their positions
+ * by a single tick amount when {@link #run()} is invoked.
  *
- * <p>Movement logic overview:
+ * <p>
+ * Movement logic overview:
  * <ul>
- *   <li>Compute the vector from current position to target position.</li>
- *   <li>If the distance is within a small threshold, or the displacement for
- *       this tick would overshoot the target, the entity is snapped to the target
- *       and its {@link Movement} component is removed.</li>
- *   <li>Otherwise, compute a normalized direction (using unscaled long values),
- *       scale it by the displacement magnitude (speed * tick delta), and add the
- *       resulting displacement to the current position.</li>
+ * <li>Compute the vector from current position to target position.</li>
+ * <li>If the distance is within a small threshold, or the displacement for this
+ * tick would overshoot the target, the entity is snapped to the target and its
+ * {@link Movement} component is removed.</li>
+ * <li>Otherwise, compute a normalized direction (using unscaled long values),
+ * scale it by the displacement magnitude (speed * tick delta), and add the
+ * resulting displacement to the current position.</li>
  * </ul>
  *
- * <p>Design notes:
+ * <p>
+ * Design notes:
  * <ul>
- *   <li>The system uses precomputed unscaled values and the DecimalUtils
- *       arithmetic instance to preserve determinism across platforms.</li>
- *   <li>Tick delta and snapping threshold are stored as Decimal&lt;Scale4f&gt;
- *       constants and squared threshold is cached in unscaled form.</li>
+ * <li>The system uses precomputed unscaled values and the DecimalUtils
+ * arithmetic instance to preserve determinism across platforms.</li>
+ * <li>Tick delta and snapping threshold are stored as Decimal&lt;Scale4f&gt;
+ * constants and squared threshold is cached in unscaled form.</li>
  * </ul>
  */
+@Component
 public class MovementSystem implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(MovementSystem.class);
 
 	// Time delta for fixed-point math (0.1 seconds per tick)
-	private static final Decimal<Scale4f> TICK_DELTA = DecimalUtils.fromUnscaled(1000L);
+	private static final Decimal<Scale4f> TICK_DELTA = DecimalUtils.fromScaled(1000L);
 	// Distance threshold for snapping to target
-	private static final Decimal<Scale4f> THRESHOLD = DecimalUtils.fromUnscaled(1L);
+	private static final Decimal<Scale4f> THRESHOLD = DecimalUtils.fromScaled(1L);
 
 	// Precomputed threshold squared in unscaled long form
 	// To ensure 100% determinism and API compatibility, using ARITHMETIC instance
@@ -59,8 +64,8 @@ public class MovementSystem implements Runnable {
 	private final Dominion dominion;
 
 	/**
-	 * Creates a new MovementSystem that will query the supplied Dominion
-	 * for entities to process.
+	 * Creates a new MovementSystem that will query the supplied Dominion for
+	 * entities to process.
 	 *
 	 * @param dominion the ECS context used to find entities with Position and
 	 *                 Movement components (must not be null)
@@ -70,62 +75,73 @@ public class MovementSystem implements Runnable {
 	}
 
 	/**
-	 * Simple holder for the difference between target and current position in
-	 * X/Y as fixed-point decimals.
+	 * Simple holder for the difference between target and current position in X/Y
+	 * as fixed-point decimals.
 	 *
-	 * <p>Fields are package-private because they are only used internally by the
+	 * <p>
+	 * Fields are package-private because they are only used internally by the
 	 * movement computations; this class exists to keep related values grouped and
 	 * improve readability of the algorithmic steps.
+	 * </p>
 	 */
 	public static class DistanceDelta {
 		Decimal<Scale4f> deltaX;
 		Decimal<Scale4f> deltaY;
+		Decimal<Scale4f> deltaZ;
 
-		DistanceDelta(Decimal<Scale4f> deltaX, Decimal<Scale4f> deltaY) {
+		DistanceDelta(Decimal<Scale4f> deltaX, Decimal<Scale4f> deltaY, Decimal<Scale4f> deltaZ) {
 			this.deltaX = deltaX;
 			this.deltaY = deltaY;
+			this.deltaZ = deltaZ;
 		}
 	}
 
 	/**
 	 * Represents a normalized direction vector using unscaled long values.
 	 *
-	 * <p>Normalization is performed using unscaled long arithmetic to preserve
-	 * determinism; consumers should treat the fields as fixed-point unscaled
-	 * values (matching Decimal.unscaledValue()).
+	 * <p>
+	 * Normalization is performed using unscaled long arithmetic to preserve
+	 * determinism; consumers should treat the fields as fixed-point unscaled values
+	 * (matching Decimal.unscaledValue()).
+	 * </p>
 	 */
 	public static class NormalizedDirection {
 		long normXUnscaled;
 		long normYUnscaled;
+		long normZUnscaled;
 
-		NormalizedDirection(long normXUnscaled, long normYUnscaled) {
+		NormalizedDirection(long normXUnscaled, long normYUnscaled, long normZUnscaled) {
 			this.normXUnscaled = normXUnscaled;
 			this.normYUnscaled = normYUnscaled;
+			this.normZUnscaled = normZUnscaled;
 		}
 	}
 
 	/**
-	 * Represents the displacement vector to be applied to the position for a
-	 * single tick, expressed in unscaled long fixed-point units.
+	 * Represents the displacement vector to be applied to the position for a single
+	 * tick, expressed in unscaled long fixed-point units.
 	 */
 	public static class DisplacementVector {
 		long dispXUnscaled;
 		long dispYUnscaled;
+		long dispZUnscaled;
 
-		DisplacementVector(long dispXUnscaled, long dispYUnscaled) {
+		DisplacementVector(long dispXUnscaled, long dispYUnscaled, long dispZUnscaled) {
 			this.dispXUnscaled = dispXUnscaled;
 			this.dispYUnscaled = dispYUnscaled;
+			this.dispZUnscaled = dispZUnscaled;
 		}
 	}
 
 	/**
 	 * Execute a single movement tick.
 	 *
-	 * <p>This method will iterate all entities with {@link Position} and
+	 * <p>
+	 * This method will iterate all entities with {@link Position} and
 	 * {@link Movement} components and attempt to advance them toward their
-	 * configured targets. Any runtime exceptions thrown while processing a
-	 * specific entity are caught and logged so that a failure for one entity
-	 * doesn't stop the whole system from running.
+	 * configured targets. Any runtime exceptions thrown while processing a specific
+	 * entity are caught and logged so that a failure for one entity doesn't stop
+	 * the whole system from running.
 	 */
 	@Override
 	public void run() {
@@ -150,108 +166,111 @@ public class MovementSystem implements Runnable {
 	 */
 	private void processMovementTick(final Entity entity, final Position position, final Movement movement) {
 		// Calculate Distance Delta = Target Position - Current Position
-		DistanceDelta distanceDelta = calculateDistanceDelta(position, movement);
+		final DistanceDelta distanceDelta = calculateDistanceDelta(position, movement);
 
-		// Calculate Distance Squared (unscaled) using Pythagoras
-		long distanceSquaredUnscaled = calculateDistanceSquaredUnscaled(distanceDelta);
+		// Calculate Distance Squared (unscaled) using Pythagoras (x^2 + y^2 + z^2)
+		final long distanceSquaredUnscaled = calculateDistanceSquaredUnscaled(distanceDelta);
 
 		// Compute distance (unscaled)
-		long distanceUnscaled = ARITHMETIC.sqrt(distanceSquaredUnscaled);
+		final long distanceUnscaled = ARITHMETIC.sqrt(distanceSquaredUnscaled);
 
 		// Displacement Magnitude (DM) = Speed * Time Delta
-		long displacementUnscaled = ARITHMETIC.multiply(movement.speed().unscaledValue(), TICK_DELTA.unscaledValue());
-		final long absoluteDisplacement = Math.abs(displacementUnscaled);
+		final long displacementUnscaled = ARITHMETIC.multiply(movement.speed().unscaledValue(),
+				TICK_DELTA.unscaledValue());
 
-		// Check Snap Condition: Reached target, distance is zero, or overshot target
-		boolean reachedTarget = distanceSquaredUnscaled <= THRESHOLD_SQUARED_UNSCALED;
-		boolean distanceUnscaledIsZero = distanceUnscaled == 0L;
-		boolean overshotTarget = absoluteDisplacement >= distanceUnscaled;
-
-		if (reachedTarget || distanceUnscaledIsZero || overshotTarget) {
+		// Snap if within threshold or if we would overshoot
+		if (distanceSquaredUnscaled <= THRESHOLD_SQUARED_UNSCALED
+				|| distanceUnscaled <= Math.abs(displacementUnscaled)) {
 			handleSnapCondition(entity, movement);
 			return;
 		}
 
 		// Normalized Direction Vector (NDV) = Delta / Distance
-		NormalizedDirection normalizedDirection = calculateNormalizedDirection(distanceUnscaled, distanceDelta);
+		final NormalizedDirection normalizedDirection = calculateNormalizedDirection(distanceUnscaled, distanceDelta);
 
-		// Displacement Vector = (NDV * DM)
-		DisplacementVector displacementVector = calculateDisplacementVector(displacementUnscaled, normalizedDirection);
+		// Displacement Vector = NDV * Displacement Magnitude
+		final DisplacementVector displacementVector = calculateDisplacementVector(displacementUnscaled,
+				normalizedDirection);
 
 		// New Position = Current Position + Displacement Vector
-		Position newPosition = calculateNewPosition(position, displacementVector);
+		final Position newPosition = calculateNewPosition(position, displacementVector);
 		entity.add(newPosition);
 	}
 
 	/**
-	 * Compute the difference between the movement target and the current
-	 * position in X and Y (target - current).
+	 * Compute the difference between the movement target and the current position
+	 * in X, Y, and Z (target - current).
 	 */
 	private DistanceDelta calculateDistanceDelta(Position position, Movement movement) {
 		// Delta = Target - Current
-		Decimal<Scale4f> deltaX = movement.targetX().subtract(position.x());
-		Decimal<Scale4f> deltaY = movement.targetY().subtract(position.y());
+		final Decimal<Scale4f> deltaX = movement.targetX().subtract(position.x());
+		final Decimal<Scale4f> deltaY = movement.targetY().subtract(position.y());
+		final Decimal<Scale4f> deltaZ = movement.targetZ().subtract(position.z());
 
-		return new DistanceDelta(deltaX, deltaY);
+		return new DistanceDelta(deltaX, deltaY, deltaZ);
 	}
 
 	/**
-	 * Compute the unscaled squared distance between two points given their
-	 * delta in fixed-point decimals.
+	 * Compute the unscaled squared distance between two points in 3D.
 	 */
 	private long calculateDistanceSquaredUnscaled(DistanceDelta distanceDelta) {
-		// Distance Squared = (DeltaX^2) + (DeltaY^2)
-		long deltaXSquaredUnscaled = ARITHMETIC.multiply(distanceDelta.deltaX.unscaledValue(),
+		final long deltaXSquaredUnscaled = ARITHMETIC.multiply(distanceDelta.deltaX.unscaledValue(),
 				distanceDelta.deltaX.unscaledValue());
-		long deltaYSquaredUnscaled = ARITHMETIC.multiply(distanceDelta.deltaY.unscaledValue(),
+
+		final long deltaYSquaredUnscaled = ARITHMETIC.multiply(distanceDelta.deltaY.unscaledValue(),
 				distanceDelta.deltaY.unscaledValue());
 
-		return ARITHMETIC.add(deltaXSquaredUnscaled, deltaYSquaredUnscaled);
+		final long deltaZSquaredUnscaled = ARITHMETIC.multiply(distanceDelta.deltaZ.unscaledValue(),
+				distanceDelta.deltaZ.unscaledValue());
+
+		final long xySumUnscaled = ARITHMETIC.add(deltaXSquaredUnscaled, deltaYSquaredUnscaled);
+		return ARITHMETIC.add(xySumUnscaled, deltaZSquaredUnscaled);
 	}
 
 	/**
 	 * Snap the entity to its movement target and remove the Movement component.
 	 */
 	private void handleSnapCondition(Entity entity, Movement movement) {
-		Position finalPosition = new Position(movement.targetX(), movement.targetY());
+		entity.remove(Movement.class);
+		entity.remove(Position.class);
 
+		final Position finalPosition = new Position(movement.targetX(), movement.targetY(), movement.targetZ());
 		entity.add(finalPosition);
-		entity.removeType(Movement.class);
 	}
 
 	/**
-	 * Normalize the delta vector by the provided unscaled distance using
-	 * unscaled arithmetic.
+	 * Normalize the delta vector by the provided unscaled distance using unscaled
+	 * arithmetic.
 	 */
 	private NormalizedDirection calculateNormalizedDirection(long distanceUnscaled, DistanceDelta distanceDelta) {
-		long normXUnscaled = ARITHMETIC.divide(distanceDelta.deltaX.unscaledValue(), distanceUnscaled);
-		long normYUnscaled = ARITHMETIC.divide(distanceDelta.deltaY.unscaledValue(), distanceUnscaled);
+		final long normXUnscaled = ARITHMETIC.divide(distanceDelta.deltaX.unscaledValue(), distanceUnscaled);
+		final long normYUnscaled = ARITHMETIC.divide(distanceDelta.deltaY.unscaledValue(), distanceUnscaled);
+		final long normZUnscaled = ARITHMETIC.divide(distanceDelta.deltaZ.unscaledValue(), distanceUnscaled);
 
-		return new NormalizedDirection(normXUnscaled, normYUnscaled);
+		return new NormalizedDirection(normXUnscaled, normYUnscaled, normZUnscaled);
 	}
 
 	/**
-	 * Scale the normalized direction by the unscaled displacement magnitude to
-	 * produce an unscaled displacement vector for this tick.
+	 * Scale the normalized direction by the displacement magnitude.
 	 */
 	private DisplacementVector calculateDisplacementVector(long displacementUnscaled,
 			NormalizedDirection normalizedDirection) {
+		final long dispXUnscaled = ARITHMETIC.multiply(normalizedDirection.normXUnscaled, displacementUnscaled);
+		final long dispYUnscaled = ARITHMETIC.multiply(normalizedDirection.normYUnscaled, displacementUnscaled);
+		final long dispZUnscaled = ARITHMETIC.multiply(normalizedDirection.normZUnscaled, displacementUnscaled);
 
-		long dispXUnscaled = ARITHMETIC.multiply(normalizedDirection.normXUnscaled, displacementUnscaled);
-		long dispYUnscaled = ARITHMETIC.multiply(normalizedDirection.normYUnscaled, displacementUnscaled);
-
-		return new DisplacementVector(dispXUnscaled, dispYUnscaled);
+		return new DisplacementVector(dispXUnscaled, dispYUnscaled, dispZUnscaled);
 	}
 
 	/**
-	 * Convert the unscaled displacement vector into a new {@link Position}
-	 * by adding it to the current position's unscaled values and wrapping back
-	 * into Decimal&lt;Scale4f&gt; via {@link DecimalUtils#fromUnscaled}.
+	 * Calculate the new position by applying the displacement vector.
 	 */
 	private Position calculateNewPosition(Position position, DisplacementVector displacementVector) {
-		long newX = ARITHMETIC.add(position.x().unscaledValue(), displacementVector.dispXUnscaled);
-		long newY = ARITHMETIC.add(position.y().unscaledValue(), displacementVector.dispYUnscaled);
+		final long newX = ARITHMETIC.add(position.x().unscaledValue(), displacementVector.dispXUnscaled);
+		final long newY = ARITHMETIC.add(position.y().unscaledValue(), displacementVector.dispYUnscaled);
+		final long newZ = ARITHMETIC.add(position.z().unscaledValue(), displacementVector.dispZUnscaled);
 
-		return new Position(DecimalUtils.fromUnscaled(newX), DecimalUtils.fromUnscaled(newY));
+		return new Position(DecimalUtils.fromScaled(newX), DecimalUtils.fromScaled(newY),
+				DecimalUtils.fromScaled(newZ));
 	}
 }

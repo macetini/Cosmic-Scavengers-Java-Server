@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.component;
+package com.cosmic.scavengers.dominion.components;
 
 import org.decimal4j.api.Decimal;
 import org.decimal4j.scale.Scale4f;
@@ -10,5 +10,5 @@ import org.decimal4j.scale.Scale4f;
  * (e.g., Decimal<S4>) must be chosen when instantiated to match the precision
  * agreed upon by the server and client.
  */
-public record Position(Decimal<Scale4f> x, Decimal<Scale4f> y) {
+public record Position(Decimal<Scale4f> x, Decimal<Scale4f> y, Decimal<Scale4f> z) {
 }

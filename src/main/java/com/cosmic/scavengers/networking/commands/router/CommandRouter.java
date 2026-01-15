@@ -34,7 +34,7 @@ public class CommandRouter {
 	private Map<NetworkTextCommand, ICommandTextHandler> textCommandsMap;
 	private final List<ICommandTextHandler> textHandlers;
 
-	private final String TEXT_COMMAND_DELIMITER = "\\|";
+	private static final String TEXT_COMMAND_DELIMITER = "\\|";
 
 	public CommandRouter(List<ICommandBinaryHandler> binaryCommands, List<ICommandTextHandler> textCommands) {
 		this.binaryHandlers = binaryCommands;

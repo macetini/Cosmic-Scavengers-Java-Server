@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
-import com.cosmic.scavengers.db.repository.jooq.JooqPlayerRepository;
+import com.cosmic.scavengers.db.repositories.jooq.JooqPlayerRepository;
 import com.cosmic.scavengers.utils.SecurityUtils;
 
 /**

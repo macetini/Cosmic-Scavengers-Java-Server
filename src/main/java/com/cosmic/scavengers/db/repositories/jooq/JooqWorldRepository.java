@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.db.repository.jooq;
+package com.cosmic.scavengers.db.repositories.jooq;
 
 import static com.cosmic.scavengers.db.model.tables.Worlds.WORLDS;
 

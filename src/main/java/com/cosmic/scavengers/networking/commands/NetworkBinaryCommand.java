@@ -4,19 +4,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Enum representing various network commands used in the Cosmic Scavengers
+ * Enum representing various network commands used in the game
  * server-client communication.
  */
 public enum NetworkBinaryCommand {
+	UNKNOWN(0x0000, "Unknown command."), 
 	REQUEST_WORLD_STATE_C(0x0001, "Request the current state of the game world."),
 	REQUEST_WORLD_STATE_S(0x0002, "Send the current state of the game world."),
 
 	REQUEST_PLAYER_ENTITIES_C(0x0003, "Request the entities associated with a player."),
-	REQUEST_PLAYER_ENTITIES_S(0x0004, "Send the entities associated with a player.");
+	REQUEST_PLAYER_ENTITIES_S(0x0004, "Send the entities associated with a player."),
+
+	REQUEST_ENTITY_MOVE_C(0x0005, "Request an entity to movement."),
+	REQUEST_ENTITY_MOVE_S(0x0006, "Entity movement Server response.");
 
 	private static final Map<Short, NetworkBinaryCommand> BY_CODE = new HashMap<>();
+	
 	static {
-		// This block runs once to populate the map for fast, constant-time lookup.
 		for (NetworkBinaryCommand command : NetworkBinaryCommand.values()) {
 			BY_CODE.put(command.getCode(), command);
 		}

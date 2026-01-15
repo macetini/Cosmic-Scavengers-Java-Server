@@ -40,7 +40,7 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 		log.info("Handling {} command for channel {}.", getCommand().getLogText(), ctx.channel().id());
 
 		Long playerId = payload.readLong();
-		List<PlayerEntities> entities = playerInitService.getAllByPlayerId(playerId);
+		List<PlayerEntities> entities = playerInitService.fetchAndInitializeEntities(playerId);
 
 		if (entities.isEmpty()) {
 			log.warn("No player entities found for playerId '{}'", playerId);
