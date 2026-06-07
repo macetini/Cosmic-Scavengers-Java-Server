@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cosmic.scavengers.core.utils.SecurityUtils;
+import com.cosmic.scavengers.core.utils.SecurityUtil;
 import com.cosmic.scavengers.db.jooq.repositories.PlayerRepository;
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
 
@@ -41,8 +41,8 @@ public class UserService {
 	@Transactional
 	public Optional<Players> registerUser(String username, String plaintextPassword) {
 		// Generate Salt and Hash using SecurityUtils
-		final String salt = SecurityUtils.generateSalt();
-		final String hash = SecurityUtils.hashPassword(plaintextPassword, salt);
+		final String salt = SecurityUtil.generateSalt();
+		final String hash = SecurityUtil.hashPassword(plaintextPassword, salt);
 
 		return registerNewPlayer(username, hash, salt);
 	}
@@ -89,7 +89,7 @@ public class UserService {
 		}
 		Players player = playerOptional.get();
 
-		final boolean authenticated = SecurityUtils.verifyPassword(plaintextPassword, player.getPasswordHash(),
+		final boolean authenticated = SecurityUtil.verifyPassword(plaintextPassword, player.getPasswordHash(),
 				player.getSalt());
 
 		if (!authenticated) {

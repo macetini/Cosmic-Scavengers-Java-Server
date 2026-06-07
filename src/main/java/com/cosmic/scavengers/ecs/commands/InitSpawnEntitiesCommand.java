@@ -5,7 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.core.utils.DecimalUtils;
+import com.cosmic.scavengers.core.utils.DecimalUtil;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.ecs.commands.meta.IEcsCommand;
 import com.cosmic.scavengers.ecs.domain.components.Owner;
@@ -32,9 +32,9 @@ public record InitSpawnEntitiesCommand(long playerId, List<PlayerEntities> entit
 			}
 			
             final Position initialPos = new Position(
-            		DecimalUtils.fromScaled(data.getPosX()),
-            	    DecimalUtils.fromScaled(data.getPosY()), 
-            	    DecimalUtils.fromScaled(data.getPosZ())
+            		DecimalUtil.fromScaled(data.getPosX()),
+            	    DecimalUtil.fromScaled(data.getPosY()), 
+            	    DecimalUtil.fromScaled(data.getPosZ())
             );
 			final Owner owner = new Owner(data.getPlayerId());
 			

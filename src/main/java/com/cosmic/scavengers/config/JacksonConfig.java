@@ -15,9 +15,8 @@ public class JacksonConfig {
 
 	@Bean
 	@Primary
-	public ObjectMapper objectMapper() {
+	ObjectMapper objectMapper() {
 		ObjectMapper mapper = new ObjectMapper();
-		
 		mapper.registerModule(new ProtobufModule());
 		mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

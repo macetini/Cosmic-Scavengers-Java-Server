@@ -31,7 +31,7 @@ public class IntentProcessorSystem implements Runnable {
 			Entity entity = result.entity();
 			MoveIntent intent = result.comp();
 			
-			MoveRequestData requsetData = intent.requsetData();
+			/*MoveRequestData requsetData = intent.requsetData();
 
 			log.debug("Processing Move Intent for Player '{}' Entity: '{}': Moving to [{},{},{}]", 
 					requsetData.playerId(),
@@ -43,7 +43,7 @@ public class IntentProcessorSystem implements Runnable {
 					requsetData.movementSpeed());
 			
 			entity.remove(intent);
-			entity.add(movementState);			
+			entity.add(movementState);*/		
 		});
 	}
 }

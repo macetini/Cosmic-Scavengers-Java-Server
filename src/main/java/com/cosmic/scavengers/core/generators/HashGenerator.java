@@ -6,7 +6,7 @@ import java.util.HexFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cosmic.scavengers.core.utils.SecurityUtils;
+import com.cosmic.scavengers.core.utils.SecurityUtil;
 
 public class HashGenerator {
 	private static final Logger log = LoggerFactory.getLogger(HashGenerator.class);
@@ -16,8 +16,8 @@ public class HashGenerator {
 		String password = "secret"; // <-- Use your desired test password
 
 		// 1. Generate secure values
-		String salt = SecurityUtils.generateSalt();
-		String hash = SecurityUtils.hashPassword(password, salt);
+		String salt = SecurityUtil.generateSalt();
+		String hash = SecurityUtil.hashPassword(password, salt);
 
 		log.info("--- Generated Credentials for Manual DB Insert ---");
 		log.info("Username: {}", username);

@@ -4,7 +4,7 @@
 
 	<jdbc>
 		<driver>org.postgresql.Driver</driver>
-		<url>jdbc:postgresql://192.168.1.3:5432/rts_game_db</url>
+		<url>jdbc:postgresql://localhost:5432/rts_game_db</url>
 		<user>rts_user</user>
 		<password>secret</password>
 	</jdbc>

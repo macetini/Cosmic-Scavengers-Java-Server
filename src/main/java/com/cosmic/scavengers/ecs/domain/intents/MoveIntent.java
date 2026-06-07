@@ -6,5 +6,5 @@ import com.cosmic.scavengers.gameplay.services.data.MoveRequestData;
 public record MoveIntent(
 		long entityId,
 		Long playerId,
-		MoveRequestData requsetData) implements IEcsIntent {	
+		MoveRequestData requestData) implements IEcsIntent {	
 }

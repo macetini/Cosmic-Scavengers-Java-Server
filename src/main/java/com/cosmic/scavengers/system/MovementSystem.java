@@ -1,6 +1,6 @@
 package com.cosmic.scavengers.system;
 
-import static com.cosmic.scavengers.core.utils.DecimalUtils.ARITHMETIC;
+import static com.cosmic.scavengers.core.utils.DecimalUtil.ARITHMETIC;
 
 import org.decimal4j.api.Decimal;
 import org.decimal4j.scale.Scale4f;
@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.core.utils.DecimalUtils;
+import com.cosmic.scavengers.core.utils.DecimalUtil;
 import com.cosmic.scavengers.ecs.domain.components.Movement;
 import com.cosmic.scavengers.ecs.domain.components.Position;
 import com.cosmic.scavengers.ecs.domain.intents.MoveIntent;
@@ -52,9 +52,9 @@ public class MovementSystem implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(MovementSystem.class);
 
 	// Time delta for fixed-point math (0.1 seconds per tick)
-	private static final Decimal<Scale4f> TICK_DELTA = DecimalUtils.fromScaled(1000L);
+	private static final Decimal<Scale4f> TICK_DELTA = DecimalUtil.fromScaled(1000L);
 	// Distance threshold for snapping to target
-	private static final Decimal<Scale4f> THRESHOLD = DecimalUtils.fromScaled(1L);
+	private static final Decimal<Scale4f> THRESHOLD = DecimalUtil.fromScaled(1L);
 
 	// Precomputed threshold squared in unscaled long form
 	// To ensure 100% determinism and API compatibility, using ARITHMETIC instance
@@ -284,7 +284,7 @@ public class MovementSystem implements Runnable {
 		final long newY = ARITHMETIC.add(position.y().unscaledValue(), displacementVector.dispYUnscaled);
 		final long newZ = ARITHMETIC.add(position.z().unscaledValue(), displacementVector.dispZUnscaled);
 
-		return new Position(DecimalUtils.fromScaled(newX), DecimalUtils.fromScaled(newY),
-				DecimalUtils.fromScaled(newZ));
+		return new Position(DecimalUtil.fromScaled(newX), DecimalUtil.fromScaled(newY),
+				DecimalUtil.fromScaled(newZ));
 	}
 }

@@ -2,7 +2,7 @@ package com.cosmic.scavengers.core;
 
 import org.junit.jupiter.api.Test;
 
-import com.cosmic.scavengers.core.utils.SecurityUtils;
+import com.cosmic.scavengers.core.utils.SecurityUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,8 +16,8 @@ class SecurityUtilsTest {
 	 */
 	@Test
 	void testGenerateSalt_ShouldBeUniqueAndValid() {
-		String salt1 = SecurityUtils.generateSalt();
-		String salt2 = SecurityUtils.generateSalt();
+		String salt1 = SecurityUtil.generateSalt();
+		String salt2 = SecurityUtil.generateSalt();
 
 		// Assert 1: Must be non-empty
 		assertNotNull(salt1, "Salt must not be null.");
@@ -39,8 +39,8 @@ class SecurityUtilsTest {
 		// Use a static salt to ensure repeatability
 		String staticSalt = "AAAAAAAAAAAAAAAAAAAAAAAA"; // Base64 of 16 zero bytes
 
-		String hash1 = SecurityUtils.hashPassword(PASSWORD, staticSalt);
-		String hash2 = SecurityUtils.hashPassword(PASSWORD, staticSalt);
+		String hash1 = SecurityUtil.hashPassword(PASSWORD, staticSalt);
+		String hash2 = SecurityUtil.hashPassword(PASSWORD, staticSalt);
 
 		// Assert 1: The resulting hash must be 64 characters long (SHA-256 in
 		// hexadecimal)
@@ -58,11 +58,11 @@ class SecurityUtilsTest {
 	void testHashPassword_DifferentSalt() {
 		String password = PASSWORD;
 
-		String saltA = SecurityUtils.generateSalt();
-		String saltB = SecurityUtils.generateSalt();
+		String saltA = SecurityUtil.generateSalt();
+		String saltB = SecurityUtil.generateSalt();
 
-		String hashA = SecurityUtils.hashPassword(password, saltA);
-		String hashB = SecurityUtils.hashPassword(password, saltB);
+		String hashA = SecurityUtil.hashPassword(password, saltA);
+		String hashB = SecurityUtil.hashPassword(password, saltB);
 
 		// Assert: Different salts must produce different hashes, even for the same
 		// password
@@ -74,11 +74,11 @@ class SecurityUtilsTest {
 	 */
 	@Test
 	void testVerifyPassword_CorrectPassword() {
-		String salt = SecurityUtils.generateSalt();
-		String storedHash = SecurityUtils.hashPassword(PASSWORD, salt);
+		String salt = SecurityUtil.generateSalt();
+		String storedHash = SecurityUtil.hashPassword(PASSWORD, salt);
 
 		// Act & Assert: Verification with the correct password should pass
-		assertTrue(SecurityUtils.verifyPassword(PASSWORD, storedHash, salt),
+		assertTrue(SecurityUtil.verifyPassword(PASSWORD, storedHash, salt),
 				"Verification should succeed with the correct password.");
 	}
 
@@ -87,11 +87,11 @@ class SecurityUtilsTest {
 	 */
 	@Test
 	void testVerifyPassword_WrongPassword() {
-		String salt = SecurityUtils.generateSalt();
-		String storedHash = SecurityUtils.hashPassword(PASSWORD, salt);
+		String salt = SecurityUtil.generateSalt();
+		String storedHash = SecurityUtil.hashPassword(PASSWORD, salt);
 
 		// Act & Assert: Verification with the wrong password should fail
-		assertFalse(SecurityUtils.verifyPassword(WRONG_PASSWORD, storedHash, salt),
+		assertFalse(SecurityUtil.verifyPassword(WRONG_PASSWORD, storedHash, salt),
 				"Verification should fail with the wrong password.");
 	}
 }

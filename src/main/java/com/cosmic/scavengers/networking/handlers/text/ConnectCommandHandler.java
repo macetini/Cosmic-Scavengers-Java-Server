@@ -13,9 +13,9 @@ import io.netty.channel.ChannelHandlerContext;
 @Component
 public class ConnectCommandHandler implements ICommandTextHandler {
 	private static final Logger log = LoggerFactory.getLogger(ConnectCommandHandler.class);
-	
+
 	private final MessageDispatcher messageDispatcher;
-	
+
 	public ConnectCommandHandler(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
 	}
@@ -28,6 +28,24 @@ public class ConnectCommandHandler implements ICommandTextHandler {
 	@Override
 	public void handle(ChannelHandlerContext ctx, String[] parts) {
 		log.info("Handling {} text command for channel {}.", getCommand().getLogName(), ctx.channel().id());
-		messageDispatcher.sendTextMessage(ctx, NetworkTextCommand.S_CONNECT_PASS.getCode());
+
+		if (ctx == null) {
+			log.error("ChannelHandlerContext is null! Cannot send response.");
+			return;
+		}
+
+		if (!ctx.channel().isActive()) {
+			log.error("Channel is not active! Cannot send response to channel {}.", ctx.channel().id());
+			return;
+		}
+
+		try {
+			String responseCode = NetworkTextCommand.S_CONNECT_PASS.getCode();
+			log.debug("Sending response '{}' to channel {}.", responseCode, ctx.channel().id());
+			messageDispatcher.sendTextMessage(ctx, responseCode);
+			log.info("Successfully sent connection acknowledgment to channel {}.", ctx.channel().id());
+		} catch (Exception e) {
+			log.error("Error sending connection acknowledgment: {}", e.getMessage(), e);
+		}
 	}
 }

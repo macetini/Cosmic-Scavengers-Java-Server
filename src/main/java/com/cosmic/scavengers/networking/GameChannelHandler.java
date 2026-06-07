@@ -55,6 +55,12 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 		commandRouter.route(ctx, msg);
 	}
 
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		log.error("Exception occurred in channel {}: {}", ctx.channel().id(), cause.getMessage(), cause);
+		ctx.close();
+	}
+
 	/**
 	 * Returns the stored ChannelHandlerContext for this handler. May be null if the
 	 * handler hasn't been added yet.

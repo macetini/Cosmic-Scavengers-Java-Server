@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
-import com.cosmic.scavengers.core.utils.DecimalUtils;
+import com.cosmic.scavengers.core.utils.DecimalUtil;
 import com.cosmic.scavengers.core.utils.ProtobufTimeUtil;
 import com.cosmic.scavengers.db.jpa.model.BlueprintTemplate;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
@@ -57,7 +57,7 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 				getCommand().getLogText(), ctx.channel().id());
 
 		Long playerId = payload.readLong();
-		this.handle(ctx, playerId);
+		handle(ctx, playerId);
 	}
 
 	void handle(ChannelHandlerContext ctx, Long playerId) {
@@ -108,9 +108,9 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 				.setStatusId(entity.getStatusId())
 				.setEntityName(entity.getEntityName() != null ? entity.getEntityName() : "")
 				.setIsStatic(entity.getIsStatic())
-				.setPosX(DecimalUtils.toScaled(entity.getPosX()))
-				.setPosY(DecimalUtils.toScaled(entity.getPosY()))
-				.setPosZ(DecimalUtils.toScaled(entity.getPosZ()))
+				.setPosX(DecimalUtil.toScaled(entity.getPosX()))
+				.setPosY(DecimalUtil.toScaled(entity.getPosY()))
+				.setPosZ(DecimalUtil.toScaled(entity.getPosZ()))
 				.setRotation(entity.getRotation())
 				.setChunkX(entity.getChunkX())
 				.setChunkY(entity.getChunkY())
@@ -125,9 +125,10 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 		blueprint.traitIds().forEach(
 				traitId -> traitRegistry.get(traitId).ifPresentOrElse(trait -> 
 				{
-					log.trace("Processing Trait: [{}] for PlayerId: '{}' EntityId '{}' - With Trait Properties: [{}]",
-							traitId, playerId, entityId, trait);
-					
+					if (log.isTraceEnabled()) {
+						log.trace("Processing Trait: [{}] for PlayerId: '{}' EntityId '{}' - With Trait Properties: [{}]", 
+								traitId, playerId, entityId, trait);
+					}				
 					traitProtobufMapper.mapToProto(traitId, trait).ifPresent(entityBuilder::addTraits);
 				},
 				() -> log.warn("While Parsing PlayerId: '{}' traits JSON for EntityId '{}': Failed to find Trait with ID: {}",

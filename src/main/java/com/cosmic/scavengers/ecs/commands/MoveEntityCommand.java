@@ -23,7 +23,7 @@ public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
 
 		log.info("Handling ECS Move Command for Player Id '{}' Entity Id '{}'. Target: [{}, {}, {}]",
 				playerId, entityId, 
-				data.targetX(), data.targetY(), data.targetZ());
+				data.target().x(), data.target().y(), data.target().z());
 
 		Entity liveEntity = entityRegistry.getLiveEntity(entityId);
 		if (liveEntity == null) {

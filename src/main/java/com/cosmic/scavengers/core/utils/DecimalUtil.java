@@ -12,7 +12,7 @@ import org.decimal4j.scale.Scale4f;
  * Ensures deterministic results across all clients and the server. Naming and
  * rounding match the C# DeterministicUtils for cross-platform symmetry.
  */
-public final class DecimalUtils {
+public final class DecimalUtil {
 
 	/**
 	 * Arithmetic used for all Decimal4j operations. Note: Using HALF_UP (Normal
@@ -25,9 +25,8 @@ public final class DecimalUtils {
 	 */
 	public static final DecimalFactory<Scale4f> FACTORY = Factories.getDecimalFactory(Scale4f.INSTANCE);
 
-	private DecimalUtils() {
-		// Prevent instantiation
-		throw new AssertionError("DecimalUtils cannot be instantiated");
+	private DecimalUtil() {
+		// Utility class		
 	}
 
 	// ==============================================================

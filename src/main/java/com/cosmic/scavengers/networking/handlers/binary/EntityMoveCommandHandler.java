@@ -1,18 +1,15 @@
 package com.cosmic.scavengers.networking.handlers.binary;
 
-import org.decimal4j.api.Decimal;
-import org.decimal4j.scale.Scale4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
-import com.cosmic.scavengers.core.utils.DecimalUtils;
-import com.cosmic.scavengers.db.services.PlayerInitService;
 import com.cosmic.scavengers.gameplay.services.EntityActionService;
-import com.cosmic.scavengers.gameplay.services.data.MoveRequestData;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
-import com.cosmic.scavengers.networking.constants.NetworkAttributeKeys;
+import com.cosmic.scavengers.networking.math.Vector3Long;
+import com.cosmic.scavengers.networking.proto.traits.MoveIntentProto;
+import com.cosmic.scavengers.networking.proto.traits.MoveTargetProto;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,7 +18,7 @@ import io.netty.channel.ChannelHandlerContext;
 public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 	private static final Logger log = LoggerFactory.getLogger(EntityMoveCommandHandler.class);
 
-	private final EntityActionService entityActionService;	
+	private final EntityActionService entityActionService;
 
 	public EntityMoveCommandHandler(EntityActionService entityActionService) {
 		this.entityActionService = entityActionService;
@@ -34,55 +31,33 @@ public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
-		log.info("Handling {} command for channel {}.", 
-				getCommand().getLogText(), ctx.channel().id());
+		log.info("Handling {} command for channel {}.", getCommand().getLogText(), ctx.channel().id());
 
-		// (8) bytes for EntityID + (6 * 8) bytes for decimals = 56 bytes
-		if (payload.readableBytes() < 56) {
-			log.error("Malformed move command from {}: expected 56 bytes, got {}", 
+		// (4(Integer)) Data Length + (22(MoveIntentProto)) = 26 bytes
+		if (payload.readableBytes() < 26) {
+			log.error("Malformed move command from Chanel Id '{}': expected 26 bytes, got {}", 
 					ctx.channel().id(), payload.readableBytes());
 			return;
 		}
 
-		final Long playerId = 
-				ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID_KEY.<Long>getKey()).get();
-		if (playerId == null) {
-			log.error("Unauthorized move request: No PlayerID associated with channel {}.", ctx.channel().id());
-			ctx.close(); // Immediate disconnect for security if session is corrupted
-			return;
+		final int dataLength = payload.readInt();
+		final ByteBuf protoData = payload.readBytes(dataLength);
+		try {
+			final MoveIntentProto intentProto = MoveIntentProto.parseFrom(protoData.nioBuffer());
+			
+			long entityId = intentProto.getEntityId();
+			
+			MoveTargetProto moveTargetProto = intentProto.getRequestData();
+			Vector3Long targetScaled = new Vector3Long(
+					moveTargetProto.getTargetX(),
+					moveTargetProto.getTargetY(),
+					moveTargetProto.getTargetZ());
+
+			entityActionService.processMoveRequest(entityId, targetScaled);
+		} catch (Exception e) {
+			log.error("Malformed move command from Channel Id '{}': {}", ctx.channel().id(), e.getMessage());
+		} finally {
+			protoData.release();
 		}
-
-		final MoveRequestData moveRequestData = getMoveRequestData(playerId, payload);
-		entityActionService.processMoveRequest(moveRequestData);
-	}
-
-	private MoveRequestData getMoveRequestData(Long playerId, ByteBuf payload) {
-		final long entityId = payload.readLong();
-
-		final long scaledX = payload.readLong();
-		final long scaledY = payload.readLong();
-		final long scaledZ = payload.readLong();
-
-		final Decimal<Scale4f> targetX = DecimalUtils.fromScaled(scaledX);
-		final Decimal<Scale4f> targetY = DecimalUtils.fromScaled(scaledY);
-		final Decimal<Scale4f> targetZ = DecimalUtils.fromScaled(scaledZ);
-
-		final long scaledMovementSpeed = payload.readLong();
-		final long scaledRotationSpeed = payload.readLong();
-		final long scaledStoppingDistance = payload.readLong();
-
-		final Decimal<Scale4f> unscaledMovementSpeed = DecimalUtils.fromScaled(scaledMovementSpeed);
-		final Decimal<Scale4f> unscaledRotationSpeed = DecimalUtils.fromScaled(scaledRotationSpeed);
-		final Decimal<Scale4f> unscaledStoppingDistance = DecimalUtils.fromScaled(scaledStoppingDistance);
-
-		log.info("Constructed new MoveRequestData: PlayerId: '{}' requested move of EntityId: '{}' to Target: [{}, {}, {}]",
-				playerId, entityId, 
-				targetX, targetY, targetZ);
-				//unscaledMovementSpeed, unscaledRotationSpeed, scaledStoppingDistance);
-
-		return new MoveRequestData(
-				entityId, playerId,
-				targetX, targetY, targetZ, 
-				unscaledMovementSpeed, unscaledRotationSpeed, unscaledStoppingDistance);
 	}
 }
