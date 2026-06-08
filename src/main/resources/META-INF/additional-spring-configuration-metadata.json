@@ -1,5 +1,22 @@
-{"properties": [{
-  "name": "game.server.port",
-  "type": "java.lang.String",
-  "description": "A description for 'game.server.port'"
-}]}
+{"properties": [
+  {
+    "name": "game.netty.port",
+    "type": "java.lang.String",
+    "description": "A description for 'game.server.port'"
+  },
+  {
+    "name": "game.netty.backlog",
+    "type": "java.lang.String",
+    "description": "A description for 'game.netty.backlog'"
+  },
+  {
+    "name": "game.netty.tcp-nodelay",
+    "type": "java.lang.String",
+    "description": "A description for 'game.netty.tcp-nodelay'"
+  },
+  {
+    "name": "game.netty.keepalive",
+    "type": "java.lang.String",
+    "description": "A description for 'game.netty.keepalive'"
+  }
+]}
