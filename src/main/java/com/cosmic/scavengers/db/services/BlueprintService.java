@@ -21,21 +21,42 @@ public class BlueprintService {
 
 	@Transactional(readOnly = true)
 	public List<BlueprintTemplate> loadAllTemplates() {
-		return repository.findAll().stream().map(this::mapToTemplate).toList(); // Java 17+ convenient list collector
+		return repository.findAll().stream().map(this::mapToTemplate).toList();
 	}
 
 	private BlueprintTemplate mapToTemplate(EntityBlueprint entity) {
 		Map<String, Object> configs = entity.getBehaviorConfigs();
+		
+		List<String> traitIds = extractList(configs, "trait_names");
+		Map<String, Map<String, Object>> traitOverrides = extractValues(configs, "trait_overrides");
+		List<String> buffIds = extractList(configs, "buffs"); 
 
-		return new BlueprintTemplate(entity.getId(), entity.getCategoryId(), entity.getBaseHealth(),
-				entity.isStaticDefault(), extractList(configs, "traits"), extractList(configs, "buffs"));
+		return new BlueprintTemplate(
+				entity.getId(), 
+				entity.getCategoryId(),
+				entity.getBaseHealth(),
+				entity.isStaticDefault(), 
+				traitIds, 
+				traitOverrides,
+				Map.of(),
+				buffIds
+		);
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	private List<String> extractList(Map<String, Object> map, String key) {
-		if (map == null)
+		if (map == null) {
 			return List.of();
+		}
 		Object value = map.get(key);
+		
 		return (value instanceof List<?> list) ? (List<String>) list : List.of();
+	}
+	
+	private Map<String, Map<String, Object>> extractValues(Map<String, Object> map, String key) {
+		if (map == null) {
+			return Map.of();
+		}
+		Object value = map.get(key);
+		return (value instanceof Map<?, ?> overrides) ? (Map<String, Map<String, Object>>) overrides : Map.of();
 	}
 }

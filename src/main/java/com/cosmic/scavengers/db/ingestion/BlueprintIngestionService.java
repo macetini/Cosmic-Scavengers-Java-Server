@@ -76,13 +76,16 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 		List<String> traitNames = new ArrayList<>(entityTraitDefinitions.keySet());
 		newConfigs.put("trait_names", traitNames);
 		
-		Map<String, Map<?, ?>> traitValues = extractEntityTraitValues(sanitizedId, entityTraitDefinitions);
-		newConfigs.put("trait_values", traitValues);
+		Map<String, Map<?, ?>> traitOverrides = extractEntityTraitOverrides(sanitizedId, entityTraitDefinitions);
+		
+		if(traitOverrides.size() > 0) {
+			newConfigs.put("trait_overrides", traitOverrides);
+		}
 		
 		return newConfigs;
 	}
 	
-	private Map<String, Map<?, ?>> extractEntityTraitValues(String blueprintId, Map<String, Object> entityTraitDefinitions) {
+	private Map<String, Map<?, ?>> extractEntityTraitOverrides(String blueprintId, Map<String, Object> entityTraitDefinitions) {
 		return entityTraitDefinitions.entrySet().stream().filter(entry -> {
 			if (entry.getValue() == null) {
 				log.trace("Blueprint [{}] has an empty trait value for key: {}. Skipping.", blueprintId, entry.getKey());
@@ -95,8 +98,12 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 				return false;
 			}
 			return true;
-		}).collect(Collectors.toMap(Map.Entry::getKey, entry -> new LinkedHashMap<>((Map<?, ?>) entry.getValue()),
-				(oldValue, newValue) -> oldValue, LinkedHashMap::new));
+		})
+		.collect(
+				Collectors.toMap(
+						Map.Entry::getKey, entry -> new LinkedHashMap<>((Map<?, ?>) entry.getValue()),
+						(oldValue, newValue) -> oldValue, LinkedHashMap::new)
+				);
 	}
 	
 	private EntityBlueprint updateBlueprint(String blueprintId, Map<String, Object> newConfigs) {
