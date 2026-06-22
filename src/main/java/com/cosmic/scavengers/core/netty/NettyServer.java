@@ -12,6 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Placeholder for the Netty server setup and binding.
@@ -20,18 +21,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class NettyServer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(NettyServer.class);
 
-	@Value("${game.netty.port:9001}")
-	private int gamePort;
+	@Value("${game.server.port:9001}")
+	private int gamePort;	
 
-	@Value("${game.netty.backlog:128}")
-	private int tcpBacklog;
-
-	@Value("${game.netty.keepalive:true}")
-	private boolean tcpKeepalive;
-
-	@Value("${game.netty.tcp-nodelay:true}")
-	private boolean tcpNoDelay;
-
+	private EventLoopGroup bossGroup = null;
+	private EventLoopGroup workerGroup = null;
+	
 	private final CommandRouter networkDispatcher;
 
 	public NettyServer(CommandRouter networkDispatcher) {
@@ -41,9 +36,6 @@ public class NettyServer implements Runnable {
 	@Override
 	public void run() {
 		log.debug("Netty Server Thread started successfully. Initializing Event Loops.");
-
-		EventLoopGroup bossGroup = null;
-		EventLoopGroup workerGroup = null;
 
 		try {
 			// Responsible only for accepting incoming connections and handing them off to
@@ -55,9 +47,8 @@ public class NettyServer implements Runnable {
 
 			ServerBootstrap serverBootstrap = new ServerBootstrap();
 			serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-					.option(io.netty.channel.ChannelOption.SO_BACKLOG, tcpBacklog) // TCP backlog size
-					.childOption(io.netty.channel.ChannelOption.SO_KEEPALIVE, tcpKeepalive) // TCP keep-alive
-					.childOption(io.netty.channel.ChannelOption.TCP_NODELAY, tcpNoDelay) // Disable Nagle's algorithm for low-latency
+					.option(io.netty.channel.ChannelOption.SO_BACKLOG, 128) // TCP backlog size
+					.childOption(io.netty.channel.ChannelOption.SO_KEEPALIVE, true) // TCP keep-alive
 					.childHandler(new NettyServerInitializer(networkDispatcher));
 
 			log.debug("Attempting to bind Netty to port: {}", gamePort);
@@ -66,20 +57,24 @@ public class NettyServer implements Runnable {
 
 			// Wait until the server socket is closed.
 			future.channel().closeFuture().sync();
-
 		} catch (InterruptedException e) {
 			log.error("Netty Server thread interrupted: {}", e.getMessage());
 			Thread.currentThread().interrupt();
 		} catch (Exception e) {
 			log.error("Unexpected error in Netty Server: {}", e.getMessage(), e);
 		} finally {
-			log.info("Shutting down Netty event groups gracefully.");
-			if (bossGroup != null) {
-				bossGroup.shutdownGracefully();
-			}
-			if (workerGroup != null) {
-				workerGroup.shutdownGracefully();
-			}
+			shutdown();
+		}
+	}
+
+	@PreDestroy
+	public void shutdown() {
+		log.info("Shutting down Netty event groups gracefully.");
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully();
+		}
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully();
 		}
 	}
 }

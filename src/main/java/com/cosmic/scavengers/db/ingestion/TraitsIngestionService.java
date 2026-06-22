@@ -27,7 +27,7 @@ public class TraitsIngestionService extends AbstractYamlIngester {
 	/**
 	 * Entry point called by the DataInitializer. Scans 'classpath:traits/*.yaml'
 	 * and processes changes.
-	 */	
+	 */
 	@Transactional
 	public void sync() {
 		this.syncDirectory(DIRECTORY, this::processTraitData);
@@ -40,14 +40,14 @@ public class TraitsIngestionService extends AbstractYamlIngester {
 	private void processTraitData(Map<String, Map<String, Object>> data, String category) {		
 		log.debug("Synchronizing {} Trait definitions for category: [{}]", data.size(), category);
 
-		data.forEach((traitId, properties) -> {			
-			TraitDefinition trait = traitRepo.findById(traitId).orElse(new TraitDefinition());
+		data.forEach((traitId, properties) -> {		
+			final TraitDefinition trait = traitRepo.findById(traitId).orElse(new TraitDefinition());
 
 			trait.setId(traitId);
 			trait.setCategory(category.toUpperCase());
 			trait.setData(properties);
 
-			traitRepo.save(trait);
+			traitRepo.save(trait);			
 			log.trace("Synced trait: {}", traitId);
 		});
 	}

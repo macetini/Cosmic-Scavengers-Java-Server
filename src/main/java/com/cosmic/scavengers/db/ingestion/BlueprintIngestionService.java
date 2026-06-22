@@ -1,7 +1,11 @@
 package com.cosmic.scavengers.db.ingestion;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,27 +16,24 @@ import com.cosmic.scavengers.core.db.AbstractYamlIngester;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Service
 public class BlueprintIngestionService extends AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(BlueprintIngestionService.class);
 
 	private static final String DIRECTORY = "entity_blueprints";
-	private final EntityBlueprintRepository blueprintRepo;
-	private final ObjectMapper mapper;
 
-	public BlueprintIngestionService(
-			IngestionMetadataRepository metaRepo, 
-			EntityBlueprintRepository blueprintRepo,
+	private final EntityBlueprintRepository blueprintRepo;		
+	private final ObjectMapper jsonMapper;	
+
+	public BlueprintIngestionService(IngestionMetadataRepository metaRepo, 
+			EntityBlueprintRepository blueprintRepo,			
 			ObjectMapper mapper) {
 		super(metaRepo);
-		
-		this.blueprintRepo = blueprintRepo;
-		this.mapper = mapper;
+
+		this.blueprintRepo = blueprintRepo;		
+		this.jsonMapper = mapper;
 	}
 
 	/**
@@ -44,35 +45,88 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 		this.syncDirectory(DIRECTORY, this::processBlueprintData);
 	}
 
-	private void processBlueprintData(Map<String, Map<String, Object>> data, String category) {
-		log.debug("Synchronizing {} Blueprint definitions for category: [{}]", data.size(), category);
+	private void processBlueprintData(Map<String, Map<String, Object>> fullYamlData, String category) {
+		log.debug("Synchronizing {} Blueprint definitions for category: [{}]", fullYamlData.size(), category);
 
-		data.forEach((rawId, properties) -> {
-			String sanitizedId = rawId.replace(" ", "_").toUpperCase();
-			if (!rawId.toUpperCase().equals(sanitizedId)) {
-				log.warn("Blueprint ID '{}' sanitized to '{}'.", rawId, sanitizedId);
+		fullYamlData.forEach((rawBlueprintId, fileContent) -> {
+			String sanitizedId = rawBlueprintId.replace(" ", "_").toUpperCase();
+			if (!rawBlueprintId.toUpperCase().equals(sanitizedId)) {
+				log.warn("Blueprint ID '{}' sanitized to '{}'.", rawBlueprintId, sanitizedId);
 			}
-
-			EntityBlueprint blueprint = blueprintRepo.findById(sanitizedId).orElseGet(() -> {
-				EntityBlueprint newBp = new EntityBlueprint();
-				newBp.setId(sanitizedId);
-				newBp.setCreatedAt(OffsetDateTime.now());
-				newBp.setVersion(0);
-				return newBp;
-			});
-
-			try {
-				mapper.updateValue(blueprint, properties);
-			} catch (Exception e) {
-				log.error("Failed to map blueprint [{}]: {}", sanitizedId, e.getMessage());
-				throw new RuntimeException(e);
-			}
-
-			blueprint.setCategoryId(category.toUpperCase());
-			blueprint.setUpdatedAt(OffsetDateTime.now());
-
-			blueprintRepo.saveAndFlush(blueprint);
+									
+			Map<String, Object> newConfigs = processBehaviorConfigs(sanitizedId, fileContent);
+			
+			EntityBlueprint updatedBlueprint = updateBlueprint(sanitizedId, newConfigs);
+			
+			saveBlueprint(updatedBlueprint, category);
+			
 			log.trace("Synced blueprint: {}", sanitizedId);
 		});
+	}
+	
+	private Map<String, Object> processBehaviorConfigs(String sanitizedId, Map<String, Object> properties) {
+		final Map<?, ?> enityBehaviorConfigs = 
+		        (Map<?, ?>) properties.getOrDefault("behavior_configs", Map.of());
+								
+		final Map<String, Object> entityTraitDefinitions = 
+				(Map<String, Object>) enityBehaviorConfigs.get("traits");
+		
+		Map<String, Object> newConfigs = new LinkedHashMap<>();
+		
+		List<String> traitNames = new ArrayList<>(entityTraitDefinitions.keySet());
+		newConfigs.put("trait_names", traitNames);
+		
+		Map<String, Map<?, ?>> traitValues = extractEntityTraitValues(sanitizedId, entityTraitDefinitions);
+		newConfigs.put("trait_values", traitValues);
+		
+		return newConfigs;
+	}
+	
+	private Map<String, Map<?, ?>> extractEntityTraitValues(String blueprintId, Map<String, Object> entityTraitDefinitions) {
+		return entityTraitDefinitions.entrySet().stream().filter(entry -> {
+			if (entry.getValue() == null) {
+				log.trace("Blueprint [{}] has an empty trait value for key: {}. Skipping.", blueprintId, entry.getKey());
+				return false;
+			}
+			
+			if (!(entry.getValue() instanceof Map)) {
+				log.warn("Blueprint [{}] expected a Map for trait [{}], but got {}. Skipping.", blueprintId, entry.getKey(),
+						entry.getValue().getClass().getSimpleName());
+				return false;
+			}
+			return true;
+		}).collect(Collectors.toMap(Map.Entry::getKey, entry -> new LinkedHashMap<>((Map<?, ?>) entry.getValue()),
+				(oldValue, newValue) -> oldValue, LinkedHashMap::new));
+	}
+	
+	private EntityBlueprint updateBlueprint(String blueprintId, Map<String, Object> newConfigs) {
+		Map<String, Object> processedProperties = new LinkedHashMap<>();
+		processedProperties.put("behavior_configs", newConfigs);
+
+		final EntityBlueprint entityBlueprint = blueprintRepo.findById(blueprintId).orElseGet(() -> {
+			EntityBlueprint newBlueprint = new EntityBlueprint();
+			newBlueprint.setId(blueprintId);
+			newBlueprint.setCreatedAt(OffsetDateTime.now());
+			newBlueprint.setVersion(0);
+
+			return newBlueprint;
+		});
+		
+		try {				
+			jsonMapper.updateValue(entityBlueprint, processedProperties);
+		} catch (Exception e) {
+			log.error("Failed to map blueprint [{}]: {}", blueprintId, e.getMessage());
+			throw new RuntimeException(e);
+		}
+		
+		return entityBlueprint;
+	}
+	
+	private void saveBlueprint(EntityBlueprint blueprint, String category) {
+		blueprint.setCategoryId(category.toUpperCase());
+		blueprint.setUpdatedAt(OffsetDateTime.now());
+
+		blueprintRepo.saveAndFlush(blueprint);		
+		log.trace("Saved blueprint: {}", blueprint.getId());
 	}
 }

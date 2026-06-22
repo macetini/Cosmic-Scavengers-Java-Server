@@ -39,8 +39,7 @@ public class EntityBlueprint {
 
 	@Convert(converter = JsonToMapConverter.class)
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "behavior_configs", columnDefinition = "jsonb", nullable = false)
-	@JsonProperty("behaviorConfigs")
+	@Column(name = "behavior_configs", columnDefinition = "jsonb", nullable = false)	
 	private Map<String, Object> behaviorConfigs = new HashMap<>();
 
 	@jakarta.persistence.Version

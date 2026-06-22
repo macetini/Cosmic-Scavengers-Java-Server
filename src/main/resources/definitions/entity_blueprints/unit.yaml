@@ -1,7 +1,9 @@
 main_unit:
-    base_health: 500
-    is_static_default: false
-    behaviorConfigs:
-        traits:
-            - selectable
-            - movable
+  base_health: 500
+  is_static_default: false
+  behavior_configs:
+    traits:
+      selectable:      
+      movable:
+        movement_speed: 150000
+        rotation_speed: 120000

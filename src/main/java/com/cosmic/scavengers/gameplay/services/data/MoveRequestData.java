@@ -1,8 +1,5 @@
 package com.cosmic.scavengers.gameplay.services.data;
 
-import org.decimal4j.api.Decimal;
-import org.decimal4j.scale.Scale4f;
-
 import com.cosmic.scavengers.ecs.math.Vector3Scaled;
 
 /**

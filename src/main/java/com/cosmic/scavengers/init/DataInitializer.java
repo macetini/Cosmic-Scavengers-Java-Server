@@ -28,22 +28,17 @@ public class DataInitializer implements CommandLineRunner {
 
 	private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-	public DataInitializer(
-			TraitsIngestionService traitsIngester, 
-			BlueprintIngestionService blueprintIngester,
-			TraitRegistry traitRegistry, 
-			BlueprintRegistry blueprintRegistry, 
-			NettyServer nettyServer,
-			GameEngine gameEngine) {
-		
+	public DataInitializer(TraitsIngestionService traitsIngester, BlueprintIngestionService blueprintIngester, TraitRegistry traitRegistry,
+			BlueprintRegistry blueprintRegistry, NettyServer nettyServer, GameEngine gameEngine) {
+
 		// Ingesters
 		this.traitsIngester = traitsIngester;
 		this.blueprintIngester = blueprintIngester;
-		
+
 		// Registries
 		this.traitRegistry = traitRegistry;
 		this.blueprintRegistry = blueprintRegistry;
-		
+
 		// Threads
 		this.nettyServer = nettyServer;
 		this.gameEngine = gameEngine;
@@ -82,8 +77,8 @@ public class DataInitializer implements CommandLineRunner {
 			executorService.submit(gameEngine);
 			log.debug("[1/2] GameEngine tick loop started.");
 			executorService.submit(nettyServer);
-			log.debug("[2/2]  NettyServer listening for players.");
-			
+			log.debug("[2/2] Submitted NettyServer listening for players.");
+
 			log.debug("Phase [3/3] Launching Game Core COMPLETE.");
 			//
 
