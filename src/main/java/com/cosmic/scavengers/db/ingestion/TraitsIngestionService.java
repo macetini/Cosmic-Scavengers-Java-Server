@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.db.AbstractYamlIngester;
+import com.cosmic.scavengers.db.ingestion.conf.TraitsConf;
 import com.cosmic.scavengers.db.jpa.domain.TraitDefinition;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
 import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionRepository;
 
 @Service
 public class TraitsIngestionService extends AbstractYamlIngester {
-	private static final Logger log = LoggerFactory.getLogger(TraitsIngestionService.class);
-	private static final String DIRECTORY = "traits";
+	private static final Logger log = LoggerFactory.getLogger(TraitsIngestionService.class);	
 
 	private final TraitDefinitionRepository traitRepo;
 
@@ -30,7 +30,7 @@ public class TraitsIngestionService extends AbstractYamlIngester {
 	 */
 	@Transactional
 	public void sync() {
-		this.syncDirectory(DIRECTORY, this::processTraitData);
+		this.syncDirectory(TraitsConf.DIRECTORY.key(), this::processTraitData);
 	}
 
 	/**

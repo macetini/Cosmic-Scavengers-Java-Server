@@ -34,10 +34,12 @@ public class BlueprintRegistry {
 
 		cache.clear();
 
-		for (BlueprintTemplate blueprintTemplate : blueprintService.loadAllTemplates()) {
+		blueprintService.loadAllTemplates().forEach(blueprintTemplate -> {
 			log.trace("Chaching BlueprintId '{}'", blueprintTemplate.id());
 						
-			blueprintTemplate.traitIds().forEach(traitId -> {			    			    
+			blueprintTemplate.traitIds().forEach(traitId -> {	
+				log.trace("Processing TraitId '{}' for BlueprintId '{}'", traitId, blueprintTemplate.id());
+				
 			    Map<String, Object> finalProperties = new HashMap<>();
 			    Optional<Map<String, Object>> traitDefenitions = traitRegistry.get(traitId);
 			    
@@ -45,7 +47,7 @@ public class BlueprintRegistry {
 			        finalProperties.putAll(traitDefenitions.get());
 			    } else {
 			        log.warn("Blueprint '{}' requires missing Trait: {}", blueprintTemplate.id(), traitId);
-			        return; // Skip this trait if it's missing
+			        return;
 			    }
 			    			    
 			    Map<String, Object> yamlOverrides = blueprintTemplate.traitOverrides().get(traitId);
@@ -57,7 +59,7 @@ public class BlueprintRegistry {
 			});		
 						
 			cache.put(blueprintTemplate.id(), blueprintTemplate);
-		}
+		});
 		
 		log.debug("Successfully cached {} Blueprints.", cache.size());
 	}

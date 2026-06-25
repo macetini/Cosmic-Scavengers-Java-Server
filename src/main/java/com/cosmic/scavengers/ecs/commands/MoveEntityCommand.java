@@ -35,7 +35,7 @@ public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
 		if (owner == null || owner.playerId() != playerId) {
 			log.error("Cheat Attempt: (Wrong)Player Id '{}' tried to move entity '{}' owned by Player Id'{}'",
 					playerId, entityId,
-					owner != null ? playerId : "none");
+					owner != null ? owner.playerId() : "none");
 			return;
 		}
 

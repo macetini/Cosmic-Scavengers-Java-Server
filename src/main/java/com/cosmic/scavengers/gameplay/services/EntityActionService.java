@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cosmic.scavengers.ecs.commands.MoveEntityCommand;
 import com.cosmic.scavengers.ecs.queue.EcsCommandQueue;
 import com.cosmic.scavengers.networking.math.Vector3Long;
 
@@ -29,8 +28,9 @@ public class EntityActionService {
 					entityId,
 					target.x(), target.y(), target.z());					
 		}
+		//final MoveRequestData data = new MoveRequestData(entityId, target);
 		
-//		final MoveEntityCommand command = new MoveEntityCommand(intentProto);
-//		dominionCommandQueue.submit(command);
+		//final MoveEntityCommand command = new MoveEntityCommand()
+		//dominionCommandQueue.submit(command);
 	}
 }

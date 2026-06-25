@@ -13,21 +13,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.db.AbstractYamlIngester;
+import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class BlueprintIngestionService extends AbstractYamlIngester {
-	private static final Logger log = LoggerFactory.getLogger(BlueprintIngestionService.class);
-
-	private static final String DIRECTORY = "entity_blueprints";
+public class BlueprintsIngestionService extends AbstractYamlIngester {
+	private static final Logger log = LoggerFactory.getLogger(BlueprintsIngestionService.class);
 
 	private final EntityBlueprintRepository blueprintRepo;		
 	private final ObjectMapper jsonMapper;	
 
-	public BlueprintIngestionService(IngestionMetadataRepository metaRepo, 
+	public BlueprintsIngestionService(IngestionMetadataRepository metaRepo, 
 			EntityBlueprintRepository blueprintRepo,			
 			ObjectMapper mapper) {
 		super(metaRepo);
@@ -42,7 +41,7 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 	 */
 	@Transactional
 	public void sync() {
-		this.syncDirectory(DIRECTORY, this::processBlueprintData);
+		this.syncDirectory(BlueprintsConf.DIRECTORY.key(), this::processBlueprintData);
 	}
 
 	private void processBlueprintData(Map<String, Map<String, Object>> fullYamlData, String category) {
@@ -65,21 +64,27 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 	}
 	
 	private Map<String, Object> processBehaviorConfigs(String sanitizedId, Map<String, Object> properties) {
-		final Map<?, ?> enityBehaviorConfigs = 
-		        (Map<?, ?>) properties.getOrDefault("behavior_configs", Map.of());
+		final Map<?, ?> entityBehaviorConfigs = 
+		        (Map<?, ?>) properties.getOrDefault(BlueprintsConf.BEHAVIOR_CONFIGS.key(), Map.of());
 								
+		@SuppressWarnings("unchecked")
 		final Map<String, Object> entityTraitDefinitions = 
-				(Map<String, Object>) enityBehaviorConfigs.get("traits");
+				(Map<String, Object>) entityBehaviorConfigs.get("traits");
 		
 		Map<String, Object> newConfigs = new LinkedHashMap<>();
 		
+		if (entityTraitDefinitions == null) {
+		    log.warn("Blueprint [{}] has no traits defined. Skipping.", sanitizedId);
+		    return newConfigs;
+		}
+		
 		List<String> traitNames = new ArrayList<>(entityTraitDefinitions.keySet());
-		newConfigs.put("trait_names", traitNames);
+		newConfigs.put(BlueprintsConf.TRAIT_NAMES.key(), traitNames);
 		
 		Map<String, Map<?, ?>> traitOverrides = extractEntityTraitOverrides(sanitizedId, entityTraitDefinitions);
 		
 		if(traitOverrides.size() > 0) {
-			newConfigs.put("trait_overrides", traitOverrides);
+			newConfigs.put(BlueprintsConf.TRAIT_OVERRIDES.key(), traitOverrides);
 		}
 		
 		return newConfigs;
@@ -108,16 +113,10 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 	
 	private EntityBlueprint updateBlueprint(String blueprintId, Map<String, Object> newConfigs) {
 		Map<String, Object> processedProperties = new LinkedHashMap<>();
-		processedProperties.put("behavior_configs", newConfigs);
+		processedProperties.put(BlueprintsConf.BEHAVIOR_CONFIGS.key(), newConfigs);
 
-		final EntityBlueprint entityBlueprint = blueprintRepo.findById(blueprintId).orElseGet(() -> {
-			EntityBlueprint newBlueprint = new EntityBlueprint();
-			newBlueprint.setId(blueprintId);
-			newBlueprint.setCreatedAt(OffsetDateTime.now());
-			newBlueprint.setVersion(0);
-
-			return newBlueprint;
-		});
+		final EntityBlueprint entityBlueprint = 
+				blueprintRepo.findById(blueprintId).orElseGet(() -> createNewBlueprint(blueprintId));
 		
 		try {				
 			jsonMapper.updateValue(entityBlueprint, processedProperties);
@@ -129,11 +128,20 @@ public class BlueprintIngestionService extends AbstractYamlIngester {
 		return entityBlueprint;
 	}
 	
+	private EntityBlueprint createNewBlueprint(String blueprintId) {
+		EntityBlueprint newBlueprint = new EntityBlueprint();
+		newBlueprint.setId(blueprintId);
+		newBlueprint.setCreatedAt(OffsetDateTime.now());
+		newBlueprint.setVersion(0);		
+		
+		return newBlueprint;
+	}
+	
 	private void saveBlueprint(EntityBlueprint blueprint, String category) {
 		blueprint.setCategoryId(category.toUpperCase());
 		blueprint.setUpdatedAt(OffsetDateTime.now());
 
-		blueprintRepo.saveAndFlush(blueprint);		
+		blueprintRepo.saveAndFlush(blueprint);
 		log.trace("Saved blueprint: {}", blueprint.getId());
 	}
 }

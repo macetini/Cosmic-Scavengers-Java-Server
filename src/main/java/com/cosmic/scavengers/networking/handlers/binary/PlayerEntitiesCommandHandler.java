@@ -37,12 +37,12 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 			MessageDispatcher messageDispatcher, 
 			PlayerInitService playerInitService,
 			BlueprintRegistry blueprintRegistry, 
-			TraitRegistry traitRegisty,
+			TraitRegistry traitRegistry,
 			TraitProtobufMapper traitProtobufMapper) {
 		this.messageDispatcher = messageDispatcher;
 		this.playerInitService = playerInitService;
 		this.blueprintRegistry = blueprintRegistry;
-		this.traitRegistry = traitRegisty;
+		this.traitRegistry = traitRegistry;
 		this.traitProtobufMapper = traitProtobufMapper;
 	}
 
@@ -90,23 +90,35 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 				NetworkBinaryCommand.REQUEST_PLAYER_ENTITIES_S.getCode());
 	}
 
-	// TODO - Split into multipe methods
 	private PlayerEntityProto buildPlayerEntityProto(PlayerEntities entity) {
 		Long playerId = entity.getPlayerId();
 		long entityId = entity.getId();
-		String bluprintId = entity.getBlueprintId();
+		String blueprintId = normalizeBlueprintId(entity.getBlueprintId());
 		
-		log.debug("Building Proto for PlayerId: '{}' | EntityId: '{}' |  With Blueptrint: '{}'", 
-				playerId, entityId, bluprintId);
+		log.debug("Building Proto for PlayerId: '{}' | EntityId: '{}' | With Blueprint: '{}'", 
+				playerId, entityId, blueprintId);
 
-		PlayerEntityProto.Builder entityBuilder = 
-				PlayerEntityProto.newBuilder()
+		PlayerEntityProto.Builder entityBuilder = PlayerEntityProto.newBuilder();
+		applyBaseFields(entityBuilder, entity, playerId, blueprintId);
+
+		blueprintRegistry.get(blueprintId).ifPresentOrElse(
+				blueprint -> addTraitsToBuilder(entityBuilder, blueprint, playerId, entityId),
+				() -> log.warn("Failed to find blueprint with ID: '{}' for PlayerId '{}' EntityId '{}'",
+						blueprintId, playerId, entityId));
+
+		return entityBuilder.build();
+	}
+
+	private void applyBaseFields(PlayerEntityProto.Builder entityBuilder, PlayerEntities entity,
+			Long playerId, String blueprintId) {
+		entityBuilder
 				.setId(entity.getId())
 				.setPlayerId(playerId)
 				.setWorldId(entity.getWorldId())
-				.setSectorId(entity.getSectorId()).setBlueprintId(bluprintId)
+				.setSectorId(entity.getSectorId())
+				.setBlueprintId(blueprintId)
 				.setStatusId(entity.getStatusId())
-				.setEntityName(entity.getEntityName() != null ? entity.getEntityName() : "")
+				.setEntityName(normalizeEntityName(entity.getEntityName()))
 				.setIsStatic(entity.getIsStatic())
 				.setPosX(DecimalUtil.toScaled(entity.getPosX()))
 				.setPosY(DecimalUtil.toScaled(entity.getPosY()))
@@ -115,25 +127,29 @@ public class PlayerEntitiesCommandHandler implements ICommandBinaryHandler {
 				.setChunkX(entity.getChunkX())
 				.setChunkY(entity.getChunkY())
 				.setCurrentHealth(entity.getCurrentHealth())
-				//.setStateData(entity.getStateData())
 				.setCreatedAt(ProtobufTimeUtil.toProtobufTimestamp(entity.getCreatedAt()))
 				.setUpdatedAt(ProtobufTimeUtil.toProtobufTimestamp(entity.getUpdatedAt()));
+	}
 
-		BlueprintTemplate blueprint = blueprintRegistry.get(bluprintId)
-				.orElseThrow(() -> new IllegalStateException("Failed to find blueprint with ID: " + bluprintId));		
+	private String normalizeBlueprintId(String blueprintId) {
+		return blueprintId != null ? blueprintId : "";
+	}
 
-		blueprint.traitIds().forEach(
-				traitId -> traitRegistry.get(traitId).ifPresentOrElse(trait -> 
-				{
+	private String normalizeEntityName(String entityName) {
+		return entityName != null ? entityName : "";
+	}
+
+	private void addTraitsToBuilder(PlayerEntityProto.Builder entityBuilder, BlueprintTemplate blueprint,
+			Long playerId, long entityId) {
+		blueprint.traitIds().forEach(traitId -> traitRegistry.get(traitId).ifPresentOrElse(
+				trait -> {
 					if (log.isTraceEnabled()) {
-						log.trace("Processing Trait: [{}] for PlayerId: '{}' EntityId '{}' - With Trait Properties: [{}]", 
+						log.trace("Processing Trait: [{}] for PlayerId: '{}' EntityId '{}' - With Trait Properties: [{}]",
 								traitId, playerId, entityId, trait);
-					}				
+					}
 					traitProtobufMapper.mapToProto(traitId, trait).ifPresent(entityBuilder::addTraits);
 				},
-				() -> log.warn("While Parsing PlayerId: '{}' traits JSON for EntityId '{}': Failed to find Trait with ID: {}",
-						playerId, entityId, traitId)));	
-
-		return entityBuilder.build();
-	}	
+				() -> log.warn("While parsing PlayerId '{}' traits for EntityId '{}': failed to find Trait with ID: {}",
+						playerId, entityId, traitId)));
+	}
 }

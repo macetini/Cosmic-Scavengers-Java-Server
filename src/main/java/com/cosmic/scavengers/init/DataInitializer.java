@@ -9,7 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.netty.NettyServer;
-import com.cosmic.scavengers.db.ingestion.BlueprintIngestionService;
+import com.cosmic.scavengers.db.ingestion.BlueprintsIngestionService;
 import com.cosmic.scavengers.db.ingestion.TraitsIngestionService;
 import com.cosmic.scavengers.engine.GameEngine;
 import com.cosmic.scavengers.registries.BlueprintRegistry;
@@ -20,7 +20,7 @@ public class DataInitializer implements CommandLineRunner {
 	private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
 	private final TraitsIngestionService traitsIngester;
-	private final BlueprintIngestionService blueprintIngester;
+	private final BlueprintsIngestionService blueprintIngester;
 	private final TraitRegistry traitRegistry;
 	private final BlueprintRegistry blueprintRegistry;
 	private final NettyServer nettyServer;
@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
 
 	private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-	public DataInitializer(TraitsIngestionService traitsIngester, BlueprintIngestionService blueprintIngester, TraitRegistry traitRegistry,
+	public DataInitializer(TraitsIngestionService traitsIngester, BlueprintsIngestionService blueprintIngester, TraitRegistry traitRegistry,
 			BlueprintRegistry blueprintRegistry, NettyServer nettyServer, GameEngine gameEngine) {
 
 		// Ingesters
