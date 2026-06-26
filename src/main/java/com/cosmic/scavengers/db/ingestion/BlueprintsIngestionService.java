@@ -14,9 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.db.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
+import com.cosmic.scavengers.db.ingestion.exceptions.BlueprintMappingException;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -120,9 +123,14 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 		
 		try {				
 			jsonMapper.updateValue(entityBlueprint, processedProperties);
-		} catch (Exception e) {
+		}
+		catch (JsonProcessingException e) {
+			log.error("Failed to parse JSON for blueprint [{}]: {}", blueprintId, e.getMessage());
+			throw new BlueprintMappingException("Failed to parse JSON of Blueprint Id: " + blueprintId, e);
+		}		
+		catch (Exception e) {
 			log.error("Failed to map blueprint [{}]: {}", blueprintId, e.getMessage());
-			throw new RuntimeException(e);
+			throw new BlueprintMappingException("Failed to map Blurprint Id: " + blueprintId, e);
 		}
 		
 		return entityBlueprint;
