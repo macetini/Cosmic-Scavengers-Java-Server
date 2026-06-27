@@ -27,27 +27,30 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
 		this.ctxRef = ctx;
-		log.info("Handler added for channel: {}", ctx.channel().remoteAddress());
+		log.debug("Handler added for channel: {}", ctx.channel().remoteAddress());
 		super.handlerAdded(ctx);
 	}
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		this.ctxRef = ctx;
-		log.info("Client connected: {}", ctx.channel().remoteAddress());
+		log.debug("Client connected: {}", ctx.channel().remoteAddress());
 		super.channelActive(ctx);
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		log.info("Client disconnected: {}", ctx.channel().remoteAddress());
+		log.debug("Client disconnected: {}", ctx.channel().remoteAddress());
 		super.channelInactive(ctx);
 	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-		log.info("Read hit on channel {} | Readable bytes: {} | Buffer Hash: {}", ctx.channel().id(),
-				msg.readableBytes(), System.identityHashCode(msg));
+		if(log.isTraceEnabled()) {
+			log.trace("Read hit on channel {} | Readable bytes: {} | Buffer Hash: {}", ctx.channel().id(),
+					msg.readableBytes(), System.identityHashCode(msg));
+		}
+		
 		if (msg.readableBytes() < 1) {
 			log.warn("Received empty message payload.");
 			return;

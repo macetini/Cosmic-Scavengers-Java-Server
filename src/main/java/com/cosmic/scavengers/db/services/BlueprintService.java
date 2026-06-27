@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.model.BlueprintTemplate;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
@@ -26,37 +27,42 @@ public class BlueprintService {
 
 	private BlueprintTemplate mapToTemplate(EntityBlueprint entity) {
 		Map<String, Object> configs = entity.getBehaviorConfigs();
+
+		List<String> traitIds = extractList(configs, BlueprintsConf.TRAIT_NAMES.key());
 		
-		List<String> traitIds = extractList(configs, "trait_names");
-		Map<String, Map<String, Object>> traitOverrides = extractValues(configs, "trait_overrides");
-		List<String> buffIds = extractList(configs, "buffs"); 
+		Map<String, Map<String, Object>> traitOverrides = 
+				extractValues(configs, BlueprintsConf.TRAIT_OVERRIDES.key());
+		
+		List<String> buffIds = extractList(configs, "buffs");
 
 		return new BlueprintTemplate(
 				entity.getId(), 
-				entity.getCategoryId(),
-				entity.getBaseHealth(),
+				entity.getCategoryId(), 
+				entity.getBaseHealth(), 
 				entity.isStaticDefault(), 
-				traitIds, 
-				traitOverrides,
-				Map.of(),
-				buffIds
-		);
+				traitIds,
+				traitOverrides, 
+				Map.of(), 
+				buffIds);
 	}
-	
+
 	private List<String> extractList(Map<String, Object> map, String key) {
 		if (map == null) {
 			return List.of();
 		}
-		Object value = map.get(key);
 		
+		Object value = map.get(key);
+
 		return (value instanceof List<?> list) ? (List<String>) list : List.of();
 	}
-	
+
 	private Map<String, Map<String, Object>> extractValues(Map<String, Object> map, String key) {
 		if (map == null) {
 			return Map.of();
 		}
+		
 		Object value = map.get(key);
+		
 		return (value instanceof Map<?, ?> overrides) ? (Map<String, Map<String, Object>>) overrides : Map.of();
 	}
 }

@@ -6,7 +6,7 @@ import io.netty.util.AttributeKey;
  * The single source of truth for all data attached to a Netty Channel.
  */
 public enum NetworkAttributeKeys {
-	PLAYER_ID_KEY, 
+	PLAYER_ID, 
 	SESSION_START_TIME, 
 	CLIENT_VERSION;
 

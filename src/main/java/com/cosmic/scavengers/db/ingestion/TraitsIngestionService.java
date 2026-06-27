@@ -47,7 +47,8 @@ public class TraitsIngestionService extends AbstractYamlIngester {
 			trait.setCategory(category.toUpperCase());
 			trait.setData(properties);
 
-			traitRepo.save(trait);			
+			traitRepo.save(trait);
+			
 			log.trace("Synced trait: {}", traitId);
 		});
 	}

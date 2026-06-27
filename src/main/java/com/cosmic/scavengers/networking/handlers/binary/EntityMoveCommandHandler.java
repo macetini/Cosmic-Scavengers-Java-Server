@@ -7,9 +7,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
 import com.cosmic.scavengers.gameplay.services.EntityActionService;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
-import com.cosmic.scavengers.networking.math.Vector3Long;
+import com.cosmic.scavengers.networking.constants.NetworkAttributeKeys;
 import com.cosmic.scavengers.networking.proto.traits.MoveIntentProto;
-import com.cosmic.scavengers.networking.proto.traits.MoveTargetProto;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,7 +30,9 @@ public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
-		log.info("Handling {} command for channel {}.", getCommand().getLogText(), ctx.channel().id());
+		if (log.isDebugEnabled()) {
+			log.debug("Handling {} command for channel {}.", getCommand().getLogText(), ctx.channel().id());
+		}
 
 		// (4(Integer)) Data Length + (22(MoveIntentProto)) = 26 bytes
 		if (payload.readableBytes() < 26) {
@@ -40,24 +41,22 @@ public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 			return;
 		}
 
-		final int dataLength = payload.readInt();
-		final ByteBuf protoData = payload.readBytes(dataLength);
 		try {
+			Long playerId = (Long) ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).get();
+			if (playerId == null) {
+				throw new IllegalStateException("Player ID not found in channel attributes for channel: " + ctx.channel().id());
+			}
+            
+            final int dataLength = payload.readInt();
+    		final ByteBuf protoData = payload.readBytes(dataLength);
+
 			final MoveIntentProto intentProto = MoveIntentProto.parseFrom(protoData.nioBuffer());
 			
-			long entityId = intentProto.getEntityId();
+			entityActionService.processMoveRequest(playerId, intentProto);
 			
-			MoveTargetProto moveTargetProto = intentProto.getRequestData();
-			Vector3Long targetScaled = new Vector3Long(
-					moveTargetProto.getTargetX(),
-					moveTargetProto.getTargetY(),
-					moveTargetProto.getTargetZ());
-
-			entityActionService.processMoveRequest(entityId, targetScaled);
+			protoData.release();
 		} catch (Exception e) {
 			log.error("Malformed move command from Channel Id '{}': {}", ctx.channel().id(), e.getMessage());
-		} finally {
-			protoData.release();
 		}
 	}
 }

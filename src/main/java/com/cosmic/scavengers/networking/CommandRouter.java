@@ -116,16 +116,17 @@ public class CommandRouter {
 		short commandCode = payload.readShort();
 		NetworkBinaryCommand command = NetworkBinaryCommand.fromCode(commandCode);
 		if (command == null) {
-			if (log.isWarnEnabled()) { // Check if WARN is enabled before performing HexString conversion
-				log.warn("Received unknown command code: '0x{}'. Dropping payload.",
-						Integer.toHexString(commandCode & 0xFFFF));
-			}
+			log.error("Received unknown command code: '0x{}'. Dropping payload.", 
+					Integer.toHexString(commandCode & 0xFFFF));
 			payload.release(); // TODO - Check if this done automatically.
 			return;
 		}
 
 		ICommandBinaryHandler handler = binaryCommandsMap.get(command);
-		log.info("Routing [Inbound BINARY] Command | Log: [{}]", command.getLogText());
+		if(log.isTraceEnabled()) {
+			log.trace("Routing [Inbound BINARY] Command | Code: [{}] | Log: [{}]", 
+					Integer.toHexString(commandCode & 0xFFFF), command.getLogText());
+		}		
 
 		if (handler != null) {
 			handler.handle(ctx, payload);

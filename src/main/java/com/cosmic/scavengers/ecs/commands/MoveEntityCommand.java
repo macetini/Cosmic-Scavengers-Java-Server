@@ -18,8 +18,8 @@ public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
 
 	@Override
 	public void execute(Dominion dominion, EntityRegistry entityRegistry) {
-		long entityId = data.entityId();
 		Long playerId = data.playerId();
+		long entityId = data.entityId();
 
 		log.info("Handling ECS Move Command for Player Id '{}' Entity Id '{}'. Target: [{}, {}, {}]",
 				playerId, entityId, 

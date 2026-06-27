@@ -49,7 +49,7 @@ public class LoginCommandHandler implements ICommandTextHandler {
 			Players player = playerOptional.get();
 
 			Long playerId = player.getId();
-			ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID_KEY.getKey()).set(playerId);
+			ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).set(playerId);
 
 			log.info("Player {} (ID: {}) logged in successfully.", username, playerId);
 			messageDispatcher.sendTextMessage(ctx, NetworkTextCommand.S_LOGIN_PASS + "|" + playerId);

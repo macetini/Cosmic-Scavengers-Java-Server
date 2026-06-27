@@ -106,8 +106,11 @@ public class MessageDispatcher {
 			payload.release(); // Release the original/old payload buffer
 		}
 
-		log.info("Sending BINARY command '{}' - payload-size '{}' bytes", NetworkBinaryCommand.fromCode(command).name(),
-				payloadSize);
+		if(log.isTraceEnabled()) {
+			log.trace("Sending BINARY command '{}' - payload-size '{}' bytes", 
+					NetworkBinaryCommand.fromCode(command).name(),
+					payloadSize);
+		}		
 
 		ctx.writeAndFlush(finalPayload);
 	}
