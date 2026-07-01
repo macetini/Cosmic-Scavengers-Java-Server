@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.system;
+package com.cosmic.scavengers.gameplay.systems;
 
 import static com.cosmic.scavengers.core.utils.DecimalUtil.ARITHMETIC;
 

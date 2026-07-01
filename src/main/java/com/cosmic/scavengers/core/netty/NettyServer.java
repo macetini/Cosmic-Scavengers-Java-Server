@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.networking.CommandRouter;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
@@ -27,32 +29,31 @@ public class NettyServer implements Runnable {
 	private EventLoopGroup bossGroup = null;
 	private EventLoopGroup workerGroup = null;
 	
-	private final CommandRouter networkDispatcher;
+	private final CommandRouter commandRouter;
 
-	public NettyServer(CommandRouter networkDispatcher) {
-		this.networkDispatcher = networkDispatcher;
-	}
+	public NettyServer(CommandRouter commandRouter) {
+        this.commandRouter = commandRouter;        
+    }
 
 	@Override
 	public void run() {
 		log.debug("Netty Server Thread started successfully. Initializing Event Loops.");
-
 		try {
 			// Responsible only for accepting incoming connections and handing them off to
 			// the workerGroup. Does not need more than one thread, as accepting connections
 			// is not a heavy task.
 			bossGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
-
 			workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 
 			ServerBootstrap serverBootstrap = new ServerBootstrap();
-			serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-					.option(io.netty.channel.ChannelOption.SO_BACKLOG, 128) // TCP backlog size
-					.childOption(io.netty.channel.ChannelOption.SO_KEEPALIVE, true) // TCP keep-alive
-					.childHandler(new NettyServerInitializer(networkDispatcher));
+			serverBootstrap.group(bossGroup, workerGroup)
+					.channel(NioServerSocketChannel.class)
+					.option(ChannelOption.SO_BACKLOG, 128) // TCP backlog size
+					.childOption(ChannelOption.SO_KEEPALIVE, true) // TCP keep-alive
+					.childHandler(new NettyServerInitializer(commandRouter));
 
 			log.debug("Attempting to bind Netty to port: {}", gamePort);
-			io.netty.channel.ChannelFuture future = serverBootstrap.bind(gamePort).sync();
+			ChannelFuture future = serverBootstrap.bind(gamePort).sync();
 			log.debug("Netty live. Listening on port: {}", gamePort);
 
 			// Wait until the server socket is closed.

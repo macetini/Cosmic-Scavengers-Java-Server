@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.ecs.commands.meta.IEcsCommand;
-import com.cosmic.scavengers.registries.EntityRegistry;
+import com.cosmic.scavengers.gameplay.registries.EntityRegistry;
 
 import dev.dominion.ecs.api.Dominion;
 
@@ -13,16 +13,13 @@ import dev.dominion.ecs.api.Dominion;
 public class EcsCommandQueueProcessing implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(EcsCommandQueueProcessing.class);
 
-	private final EcsCommandQueue commandQueue;
-	private final EntityRegistry entityRegistry;
+	private final EcsCommandQueue commandQueue;	//
 	private final Dominion dominion;
-
+	
 	public EcsCommandQueueProcessing(
-			EcsCommandQueue commandQueue, 
-			EntityRegistry entityRegistry, 
-			Dominion dominion) {
+			EcsCommandQueue 
+			commandQueue, Dominion dominion) {
 		this.commandQueue = commandQueue;
-		this.entityRegistry = entityRegistry;
 		this.dominion = dominion;
 	}
 
@@ -36,7 +33,7 @@ public class EcsCommandQueueProcessing implements Runnable {
 			}
 
 			try {
-				command.execute(dominion, entityRegistry);
+				command.execute(dominion);
 			} catch (Exception e) {
 				log.error("Failed to execute command: " + command.getClass().getSimpleName(), e);
 			}

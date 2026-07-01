@@ -7,23 +7,25 @@ import com.cosmic.scavengers.ecs.commands.meta.IEcsCommand;
 import com.cosmic.scavengers.ecs.domain.components.Owner;
 import com.cosmic.scavengers.ecs.domain.intents.MoveIntent;
 import com.cosmic.scavengers.ecs.domain.tags.StaticTag;
-import com.cosmic.scavengers.gameplay.services.data.MoveRequestData;
-import com.cosmic.scavengers.registries.EntityRegistry;
+import com.cosmic.scavengers.gameplay.queue.requests.MoveRequestData;
+import com.cosmic.scavengers.gameplay.registries.EntityRegistry;
 
 import dev.dominion.ecs.api.Dominion;
 import dev.dominion.ecs.api.Entity;
 
-public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
+public record MoveEntityCommand(
+		MoveRequestData moveRequestData,
+		EntityRegistry entityRegistry) implements IEcsCommand {
 	private static final Logger log = LoggerFactory.getLogger(MoveEntityCommand.class);
 
 	@Override
-	public void execute(Dominion dominion, EntityRegistry entityRegistry) {
-		Long playerId = data.playerId();
-		long entityId = data.entityId();
+	public void execute(Dominion dominion) {
+		Long playerId = moveRequestData.playerId();
+		long entityId = moveRequestData.entityId();
 
 		log.info("Handling ECS Move Command for Player Id '{}' Entity Id '{}'. Target: [{}, {}, {}]",
 				playerId, entityId, 
-				data.target().x(), data.target().y(), data.target().z());
+				moveRequestData.target().x(), moveRequestData.target().y(), moveRequestData.target().z());
 
 		Entity liveEntity = entityRegistry.getLiveEntity(entityId);
 		if (liveEntity == null) {
@@ -33,7 +35,7 @@ public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
 
 		Owner owner = liveEntity.get(Owner.class);
 		if (owner == null || owner.playerId() != playerId) {
-			log.error("Cheat Attempt: (Wrong)Player Id '{}' tried to move entity '{}' owned by Player Id'{}'",
+			log.error("Cheat Attempt: (Wrong)Player Id: '{}' tried to move Entity Id: '{}' owned by Player Id: '{}'",
 					playerId, entityId,
 					owner != null ? owner.playerId() : "none");
 			return;
@@ -42,9 +44,9 @@ public record MoveEntityCommand(MoveRequestData data) implements IEcsCommand {
 		if (liveEntity.has(StaticTag.class)) {
 			log.warn("Move rejected: Entity {} is static.", entityId);
 			return;
-		}
+		}		
 
-		MoveIntent intent = new MoveIntent(entityId, playerId, data);
+		MoveIntent intent = new MoveIntent(entityId, playerId, moveRequestData);
 
 		if (liveEntity.has(MoveIntent.class)) {
 			MoveIntent existing = liveEntity.get(MoveIntent.class);

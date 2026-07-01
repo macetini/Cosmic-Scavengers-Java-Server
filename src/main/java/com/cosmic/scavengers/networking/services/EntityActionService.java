@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.gameplay.services;
+package com.cosmic.scavengers.networking.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.ecs.commands.MoveEntityCommand;
 import com.cosmic.scavengers.ecs.queue.EcsCommandQueue;
-import com.cosmic.scavengers.gameplay.services.data.MoveRequestData;
+import com.cosmic.scavengers.gameplay.queue.requests.MoveRequestData;
 import com.cosmic.scavengers.networking.math.Vector3Long;
 import com.cosmic.scavengers.networking.proto.traits.MoveIntentProto;
 import com.cosmic.scavengers.networking.proto.traits.MoveTargetProto;
@@ -42,8 +42,6 @@ public class EntityActionService {
 				entityId, 
 				target.x(), target.y(), target.z());				
 		
-		final MoveRequestData data = new MoveRequestData(playerId, entityId, target);
-		final MoveEntityCommand command = new MoveEntityCommand(data);
-		dominionCommandQueue.submit(command);
+		final MoveRequestData data = new MoveRequestData(playerId, entityId, target);		
 	}
 }

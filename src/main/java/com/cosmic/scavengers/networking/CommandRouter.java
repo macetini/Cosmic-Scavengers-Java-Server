@@ -14,9 +14,11 @@ import com.cosmic.scavengers.core.commands.ICommandTextHandler;
 import com.cosmic.scavengers.networking.commands.CommandType;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
 import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
+import com.google.protobuf.GeneratedMessage;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
 import io.netty.util.CharsetUtil;
 import jakarta.annotation.PostConstruct;
 
@@ -26,19 +28,35 @@ import jakarta.annotation.PostConstruct;
  */
 @Component
 public class CommandRouter {
-	private static final Logger log = LoggerFactory.getLogger(CommandRouter.class);
-
+	private static final Logger log = LoggerFactory.getLogger(CommandRouter.class);	
+	
 	private Map<NetworkBinaryCommand, ICommandBinaryHandler> binaryCommandsMap;
 	private final List<ICommandBinaryHandler> binaryHandlers;
 
 	private Map<NetworkTextCommand, ICommandTextHandler> textCommandsMap;
 	private final List<ICommandTextHandler> textHandlers;
+	
+	private final ChannelRegistry channelRegistry;
+	private final MessageDispatcher messageDispatcher;
 
 	private static final String TEXT_COMMAND_DELIMITER = "\\|";
 
-	public CommandRouter(List<ICommandBinaryHandler> binaryCommands, List<ICommandTextHandler> textCommands) {
+	public CommandRouter(List<ICommandBinaryHandler> binaryCommands,
+			List<ICommandTextHandler> textCommands,
+			ChannelRegistry channelRegistry,
+			MessageDispatcher messageDispatcher) {
 		this.binaryHandlers = binaryCommands;
 		this.textHandlers = textCommands;
+		this.channelRegistry = channelRegistry;
+		this.messageDispatcher = messageDispatcher;
+	}
+	
+	public void addChannel(ChannelHandlerContext ctx) {
+		channelRegistry.add(ctx);
+	}
+	
+	public void removeChannel(ChannelHandlerContext ctx) {
+		channelRegistry.remove(ctx);
 	}
 
 	/**
@@ -62,7 +80,7 @@ public class CommandRouter {
 	 * @param command The Command Payload.
 	 * 
 	 */
-	public void route(ChannelHandlerContext ctx, ByteBuf command) {
+	public void routeIncoming(ChannelHandlerContext ctx, ByteBuf command) {
 		byte commandValue = command.readByte();
 		CommandType commandType = CommandType.fromValue(commandValue);
 		switch (commandType) {
@@ -133,6 +151,28 @@ public class CommandRouter {
 		} else {
 			log.warn("No Handler implemented for [Inbound Command] | Log: [{}]", command.getLogText());
 			payload.release(); // TODO - Check if this done automatically.
+		}
+	}
+	
+	public void routeOutbound(ChannelId channelId, CommandType commandType, NetworkBinaryCommand command, GeneratedMessage message) {
+		ChannelHandlerContext ctx = channelRegistry.get(channelId);
+		routeOutbound(ctx, commandType, command, message);
+	}
+	
+	public void routeOutbound(ChannelHandlerContext ctx, CommandType commandType, NetworkBinaryCommand command, GeneratedMessage message) {		
+		switch (commandType) {
+		case TYPE_TEXT:
+			log.trace("Routing [Outbound TEXT] Command | Type: [{}]", commandType);
+			break;
+		case TYPE_BINARY:		
+			log.trace("Routing [Outbound BINARY] Command | Type: [{}]", commandType);
+			messageDispatcher.sendBinaryProtobufMessage(ctx, message, command.getCode());
+			break;
+		case TYPE_UNKNOWN:
+			log.warn("Routing [Outbound UNKNOWN] Command | Type: [{}]", commandType);
+			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + commandType);
 		}
 	}
 }

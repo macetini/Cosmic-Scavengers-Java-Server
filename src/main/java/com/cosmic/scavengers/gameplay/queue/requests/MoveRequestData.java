@@ -1,5 +1,6 @@
-package com.cosmic.scavengers.gameplay.services.data;
+package com.cosmic.scavengers.gameplay.queue.requests;
 
+import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 import com.cosmic.scavengers.networking.math.Vector3Long;
 
 /**
@@ -8,9 +9,5 @@ import com.cosmic.scavengers.networking.math.Vector3Long;
 public record MoveRequestData(
 		Long playerId,
         Long entityId,
-        Vector3Long target        
-        //long movementSpeed, 
-        //long rotationSpeed, 
-        //long stoppingDistance
-        ) {
+        Vector3Long target) implements IGameplayRequest {
 }

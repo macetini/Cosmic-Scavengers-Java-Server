@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.init;
+package com.cosmic.scavengers.core.init;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,12 +8,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.cosmic.scavengers.core.engine.GameEngine;
 import com.cosmic.scavengers.core.netty.NettyServer;
 import com.cosmic.scavengers.db.ingestion.BlueprintsIngestionService;
 import com.cosmic.scavengers.db.ingestion.TraitsIngestionService;
-import com.cosmic.scavengers.engine.GameEngine;
-import com.cosmic.scavengers.registries.BlueprintRegistry;
-import com.cosmic.scavengers.registries.TraitRegistry;
+import com.cosmic.scavengers.gameplay.registries.BlueprintRegistry;
+import com.cosmic.scavengers.gameplay.registries.TraitRegistry;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -28,8 +28,13 @@ public class DataInitializer implements CommandLineRunner {
 
 	private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-	public DataInitializer(TraitsIngestionService traitsIngester, BlueprintsIngestionService blueprintIngester, TraitRegistry traitRegistry,
-			BlueprintRegistry blueprintRegistry, NettyServer nettyServer, GameEngine gameEngine) {
+	public DataInitializer(
+			TraitsIngestionService traitsIngester, 
+			BlueprintsIngestionService blueprintIngester, 
+			TraitRegistry traitRegistry,
+			BlueprintRegistry blueprintRegistry, 
+			NettyServer nettyServer, 
+			GameEngine gameEngine) {
 
 		// Ingesters
 		this.traitsIngester = traitsIngester;

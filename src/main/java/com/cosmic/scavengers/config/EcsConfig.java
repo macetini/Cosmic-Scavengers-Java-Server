@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.cosmic.scavengers.broadcast.IMessageBroadcaster;
 import com.cosmic.scavengers.broadcast.MessageBroadcasterImpl;
-import com.cosmic.scavengers.system.MovementSystem;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem;
 
 import dev.dominion.ecs.api.Dominion;
 

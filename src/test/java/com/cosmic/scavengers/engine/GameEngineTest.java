@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import com.cosmic.scavengers.core.engine.GameEngine;
+
 class GameEngineTest {
 
 	// Use @Spy to test the actual GameEngine while being able to mock its internal

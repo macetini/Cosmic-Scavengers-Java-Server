@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
-import com.cosmic.scavengers.gameplay.services.EntityActionService;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
 import com.cosmic.scavengers.networking.constants.NetworkAttributeKeys;
 import com.cosmic.scavengers.networking.proto.traits.MoveIntentProto;
+import com.cosmic.scavengers.networking.services.EntityActionService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

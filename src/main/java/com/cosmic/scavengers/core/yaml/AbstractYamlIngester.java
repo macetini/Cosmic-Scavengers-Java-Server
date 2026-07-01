@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.core.db;
+package com.cosmic.scavengers.core.yaml;
 
 import java.io.IOException;
 import java.io.InputStream;

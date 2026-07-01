@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.system;
+package com.cosmic.scavengers.gameplay.systems;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.atLeast;
@@ -24,9 +24,10 @@ import org.slf4j.LoggerFactory;
 import com.cosmic.scavengers.core.utils.DecimalUtil;
 import com.cosmic.scavengers.ecs.domain.components.Movement;
 import com.cosmic.scavengers.ecs.domain.components.Position;
-import com.cosmic.scavengers.system.MovementSystem.DisplacementVector;
-import com.cosmic.scavengers.system.MovementSystem.DistanceDelta;
-import com.cosmic.scavengers.system.MovementSystem.NormalizedDirection;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem.DisplacementVector;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem.DistanceDelta;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem.NormalizedDirection;
 
 import dev.dominion.ecs.api.Dominion;
 import dev.dominion.ecs.api.Entity;

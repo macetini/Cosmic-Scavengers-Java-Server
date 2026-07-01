@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cosmic.scavengers.core.db.AbstractYamlIngester;
+import com.cosmic.scavengers.core.yaml.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
 import com.cosmic.scavengers.db.ingestion.exceptions.BlueprintMappingException;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;

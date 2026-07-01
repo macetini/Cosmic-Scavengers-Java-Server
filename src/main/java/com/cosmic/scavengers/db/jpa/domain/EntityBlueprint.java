@@ -8,7 +8,7 @@ import java.util.Objects;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.cosmic.scavengers.core.db.JsonToMapConverter;
+import com.cosmic.scavengers.core.yaml.JsonToMapConverter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

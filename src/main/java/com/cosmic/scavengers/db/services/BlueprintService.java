@@ -22,12 +22,16 @@ public class BlueprintService {
 
 	@Transactional(readOnly = true)
 	public List<BlueprintTemplate> loadAllTemplates() {
-		return repository.findAll().stream().map(this::mapToTemplate).toList();
+		return repository
+				.findAll()
+				.stream()
+				.map(this::mapToTemplate)
+				.toList();
 	}
 
 	private BlueprintTemplate mapToTemplate(EntityBlueprint entity) {
 		Map<String, Object> configs = entity.getBehaviorConfigs();
-
+		
 		List<String> traitIds = extractList(configs, BlueprintsConf.TRAIT_NAMES.key());
 		
 		Map<String, Map<String, Object>> traitOverrides = 
@@ -52,8 +56,9 @@ public class BlueprintService {
 		}
 		
 		Object value = map.get(key);
-
-		return (value instanceof List<?> list) ? (List<String>) list : List.of();
+		
+		return (value instanceof List<?> list) ? 
+				(List<String>) list : List.of();
 	}
 
 	private Map<String, Map<String, Object>> extractValues(Map<String, Object> map, String key) {
@@ -63,6 +68,7 @@ public class BlueprintService {
 		
 		Object value = map.get(key);
 		
-		return (value instanceof Map<?, ?> overrides) ? (Map<String, Map<String, Object>>) overrides : Map.of();
+		return (value instanceof Map<?, ?> overrides) ? 
+				(Map<String, Map<String, Object>>) overrides : Map.of();
 	}
 }

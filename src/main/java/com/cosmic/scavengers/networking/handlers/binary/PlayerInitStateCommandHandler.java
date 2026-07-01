@@ -20,12 +20,12 @@ public class PlayerInitStateCommandHandler implements ICommandBinaryHandler {
 
 	private final MessageDispatcher messageDispatcher;
 	private final PlayerInitService playerInitService;
-	private final PlayerEntitiesCommandHandler playerEntitiesCommandHandler;
+	private final RequestPlayerEntities playerEntitiesCommandHandler;
 
 	public PlayerInitStateCommandHandler(
 			MessageDispatcher messageDispatcher, 
 			PlayerInitService playerInitService,
-			PlayerEntitiesCommandHandler playerEntitiesCommandHandler) {
+			RequestPlayerEntities playerEntitiesCommandHandler) {
 		this.messageDispatcher = messageDispatcher;
 		this.playerInitService = playerInitService;
 		this.playerEntitiesCommandHandler = playerEntitiesCommandHandler;
@@ -36,7 +36,7 @@ public class PlayerInitStateCommandHandler implements ICommandBinaryHandler {
 		return NetworkBinaryCommand.REQUEST_PLAYER_INIT_STATE_C;
 	}
 
-	// TODO - switch to The Paged or Streamed Approach
+	//TODO - switch to The Paged or Streamed Approach
 	@Override
 	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
 		log.info("Command Handler Log | [{}] - On Channel Id: '{}'.", 

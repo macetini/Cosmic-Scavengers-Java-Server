@@ -11,7 +11,6 @@ import com.cosmic.scavengers.db.jooq.repositories.PlayerEntitiyRepository;
 import com.cosmic.scavengers.db.jooq.repositories.WorldRepository;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
-import com.cosmic.scavengers.ecs.commands.InitSpawnEntitiesCommand;
 import com.cosmic.scavengers.ecs.queue.EcsCommandQueue;
 
 @Service
@@ -20,15 +19,11 @@ public class PlayerInitService {
 
 	private final WorldRepository jooqWorldRepository;
 	private final PlayerEntitiyRepository jooqPlayerEntityRepository;	
-	private final EcsCommandQueue dominionCommandQueue;
-
+	
 	public PlayerInitService(WorldRepository jooqWorldRepository,
-			PlayerEntitiyRepository jooqPlayerEntityRepository,			
-			EcsCommandQueue dominionCommandQueue) {
+			PlayerEntitiyRepository jooqPlayerEntityRepository) {
 		this.jooqWorldRepository = jooqWorldRepository;
 		this.jooqPlayerEntityRepository = jooqPlayerEntityRepository;		
-		this.dominionCommandQueue = dominionCommandQueue;
-
 	}
 
 	public Worlds getCurrentWorldDataByPlayerId(long playerId) {
@@ -42,13 +37,10 @@ public class PlayerInitService {
 	/**
 	 * Fetches entities from DB and ensures they exist in the live ECS simulation.
 	 */
-	public List<PlayerEntities> fetchAndInitializeEntities(long playerId) {
+	public List<PlayerEntities> fetchAllPlayerEntities(long playerId) {
 		log.info("Fetching entities for player {}", playerId);
 		final List<PlayerEntities> entities = jooqPlayerEntityRepository.getAllByPlayerId(playerId);
-
-		InitSpawnEntitiesCommand spawnCommand = new InitSpawnEntitiesCommand(playerId, entities);
-		dominionCommandQueue.submit(spawnCommand);
-
+		
 		return entities;
 	}
 }

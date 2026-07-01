@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.engine;
+package com.cosmic.scavengers.core.engine;
 
 import java.util.List;
 
@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.ecs.queue.EcsCommandQueueProcessing;
-import com.cosmic.scavengers.system.IntentProcessorSystem;
-import com.cosmic.scavengers.system.MovementSystem;
+import com.cosmic.scavengers.gameplay.queue.GameplayRequestProcessor;
+import com.cosmic.scavengers.gameplay.systems.IntentProcessorSystem;
+import com.cosmic.scavengers.gameplay.systems.MovementSystem;
+import com.cosmic.scavengers.networking.queue.NetworkRequestProcessor;
 
 /**
  * The core game loop component. Runs on a dedicated thread, executes ECS
@@ -31,9 +33,13 @@ public class GameEngine implements Runnable {
 	private boolean running = true;
 
 	public GameEngine(
+			NetworkRequestProcessor networkRequestProcessor,
+			GameplayRequestProcessor gameplayRequestProcessor,
 			EcsCommandQueueProcessing commandHandlerSystem,
 			IntentProcessorSystem intentProcessorSystem,
-			MovementSystem movementSystem) {
+			MovementSystem movementSystem) {	
+		systems.add(networkRequestProcessor);
+		systems.add(gameplayRequestProcessor);
 		systems.add(commandHandlerSystem);		
 		systems.add(intentProcessorSystem);
 		systems.add(movementSystem);

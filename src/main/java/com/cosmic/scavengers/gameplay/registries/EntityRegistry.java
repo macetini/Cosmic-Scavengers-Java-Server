@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.registries;
+package com.cosmic.scavengers.gameplay.registries;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.registries;
+package com.cosmic.scavengers.gameplay.registries;
 
 import java.util.Collection;
 import java.util.Collections;
