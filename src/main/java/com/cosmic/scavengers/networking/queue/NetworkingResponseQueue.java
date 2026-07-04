@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.stereotype.Component;
 
-import com.cosmic.scavengers.networking.queue.meta.INetworkingRequest;
+import com.cosmic.scavengers.networking.queue.meta.INetworkingResponse;
 
 /**
  * Thread-safe queue for responses from game thread to Netty thread.
@@ -12,23 +12,23 @@ import com.cosmic.scavengers.networking.queue.meta.INetworkingRequest;
  * NetworkProcessorSystem polls and sends them to clients.
  */
 @Component
-public class NetworkingRequestQueue {
+public class NetworkingResponseQueue {
 	
-	private final ConcurrentLinkedQueue<INetworkingRequest> requests = 
+	private final ConcurrentLinkedQueue<INetworkingResponse> requests = 
 		new ConcurrentLinkedQueue<>();
 
 	/**
 	 * Submit a response to send to client.
 	 * Thread-safe.
 	 */
-	public void submit(INetworkingRequest request) {
+	public void submit(INetworkingResponse request) {
 		requests.offer(request);
 	}
 
 	/**
 	 * Poll a response on game thread.
 	 */
-	public INetworkingRequest poll() {
+	public INetworkingResponse poll() {
 		return requests.poll();
 	}
 

@@ -25,9 +25,14 @@ public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<GetAll
 		this.playerInitService = playerInitService;
 		this.spawnService = spawnService;
 	}
+	
+	@Override
+	public Class<GetAllPlayerEntitiesRequest> getSupportedRequestType() {
+		return GetAllPlayerEntitiesRequest.class;
+	}
 
 	@Override
-	public boolean canHandle(IGameplayRequest request) {
+	public boolean canHandle(IGameplayRequest request) {		
 		return request instanceof GetAllPlayerEntitiesRequest;
 	}
 

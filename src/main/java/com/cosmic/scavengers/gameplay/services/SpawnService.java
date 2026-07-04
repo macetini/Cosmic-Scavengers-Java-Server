@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.gameplay.factories.PlayerEntityProtoFactory;
-import com.cosmic.scavengers.networking.queue.NetworkingRequestQueue;
-import com.cosmic.scavengers.networking.queue.requests.UpdateEntitesRequest;
+import com.cosmic.scavengers.networking.queue.NetworkingResponseQueue;
+import com.cosmic.scavengers.networking.queue.responses.UpdateEntitesResponse;
 import com.cosmicscavengers.networking.protobuf.entities.EntitySyncResponse;
 import com.cosmicscavengers.networking.protobuf.entities.PlayerEntityProto;
 
@@ -23,10 +23,10 @@ import io.netty.channel.ChannelId;
 public class SpawnService {
 	private static final Logger log = LoggerFactory.getLogger(SpawnService.class);
 
-	private final NetworkingRequestQueue networkingRequestQueue; 
+	private final NetworkingResponseQueue networkingRequestQueue; 
 	private final PlayerEntityProtoFactory protoFactory;
 
-	public SpawnService(NetworkingRequestQueue networkingRequestQueue,
+	public SpawnService(NetworkingResponseQueue networkingRequestQueue,
 			PlayerEntityProtoFactory protoFactory) {
 		this.networkingRequestQueue = networkingRequestQueue;
 		this.protoFactory = protoFactory;		
@@ -51,7 +51,7 @@ public class SpawnService {
 		
 		EntitySyncResponse finalMessage = responseBuilder.build();
 
-		UpdateEntitesRequest spawnRequest = new UpdateEntitesRequest(playerId, finalMessage);
+		UpdateEntitesResponse spawnRequest = new UpdateEntitesResponse(playerId, finalMessage);
 		networkingRequestQueue.submit(spawnRequest);
 		log.debug("Spawn request queued for player {} with {} entities.", playerId, entitiesProtos.size());
 	}

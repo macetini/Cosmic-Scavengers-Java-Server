@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.networking.CommandRouter;
 import com.cosmic.scavengers.networking.commands.CommandType;
-import com.cosmic.scavengers.networking.queue.meta.INetworkingRequest;
+import com.cosmic.scavengers.networking.queue.meta.INetworkingResponse;
 
 /**
  * Network processor system. Polls responses queued by gameplay services and
@@ -14,13 +14,13 @@ import com.cosmic.scavengers.networking.queue.meta.INetworkingRequest;
  * loop.
  */
 @Component
-public class NetworkRequestProcessor implements Runnable {
-	private static final Logger log = LoggerFactory.getLogger(NetworkRequestProcessor.class);
+public class NetworkResponseProcessor implements Runnable {
+	private static final Logger log = LoggerFactory.getLogger(NetworkResponseProcessor.class);
 
-	private final NetworkingRequestQueue requestQueue;
+	private final NetworkingResponseQueue requestQueue;
 	private final CommandRouter commandRouter;
 
-	public NetworkRequestProcessor(NetworkingRequestQueue responseQueue,
+	public NetworkResponseProcessor(NetworkingResponseQueue responseQueue,
 			CommandRouter commandRouter) {
 		this.requestQueue = responseQueue;
 		this.commandRouter = commandRouter;
@@ -33,7 +33,7 @@ public class NetworkRequestProcessor implements Runnable {
 
 	private void processRequests() {
 		while (requestQueue.hasRequest()) {
-			INetworkingRequest request = requestQueue.poll();
+			INetworkingResponse request = requestQueue.poll();
 			if (request == null) {
 				log.warn("Polled 'null' Request from Networking Queue");
 				continue;
@@ -48,7 +48,7 @@ public class NetworkRequestProcessor implements Runnable {
 		}
 	}
 
-	private void processRequest(INetworkingRequest request) {
+	private void processRequest(INetworkingResponse request) {
 		commandRouter.routeOutbound(request.getPlayerId(), CommandType.TYPE_BINARY, request.getCommand(), request.getMessage());		
 	}
 }

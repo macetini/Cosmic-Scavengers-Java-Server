@@ -1,6 +1,8 @@
 package com.cosmic.scavengers.gameplay.queue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +21,18 @@ public class GameplayRequestProcessor implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(GameplayRequestProcessor.class);
 
 	private final GameplayRequestQueue requestQueue;
-	private final List<IGameplayRequestHandler<?>> handlers;
+	// Direct O(1) class-to-handler lookup map
+	private final Map<Class<? extends IGameplayRequest>, IGameplayRequestHandler<?>> handlerMap;
 
-	public GameplayRequestProcessor(GameplayRequestQueue requestQueue, List<IGameplayRequestHandler<?>> handlers) {
+	public GameplayRequestProcessor(GameplayRequestQueue requestQueue, 
+			List<IGameplayRequestHandler<?>> handlers) {
 		this.requestQueue = requestQueue;
-		this.handlers = handlers;
+		this.handlerMap = new HashMap<>();
+
+		// Map handlers by their supported request class at startup
+		for (IGameplayRequestHandler<?> handler : handlers) {
+			this.handlerMap.put(handler.getSupportedRequestType(), handler);
+		}
 	}
 
 	@Override
@@ -39,18 +48,17 @@ public class GameplayRequestProcessor implements Runnable {
 				continue;
 			}
 
-			try {			
-				IGameplayRequestHandler<?> handler = handlers
-						.stream()
-						.filter(h -> h.canHandle(request))
-						.findFirst()
-						.orElseThrow(() -> new IllegalStateException(
-								"No handler for request: " + request.getClass().getSimpleName()));
+			try {
+				// Instantaneous O(1) lookup, no streams, no allocations
+				IGameplayRequestHandler<?> handler = handlerMap.get(request.getClass());
+
+				if (handler == null) {
+					throw new IllegalStateException("No handler registered for request: " + request.getClass().getSimpleName());
+				}
 
 				dispatchToHandler(handler, request);
 			} catch (Exception e) {
-				log.error("Error processing request {}", 
-						request.getClass().getSimpleName(), e);
+				log.error("Error processing request {}", request.getClass().getSimpleName(), e);
 			}
 		}
 	}

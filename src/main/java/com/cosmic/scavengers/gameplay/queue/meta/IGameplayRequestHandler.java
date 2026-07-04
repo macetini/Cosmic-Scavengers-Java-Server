@@ -5,6 +5,11 @@ package com.cosmic.scavengers.gameplay.queue.meta;
  * own logic and dependencies.
  */
 public interface IGameplayRequestHandler<T extends IGameplayRequest> {
+	
+	/**
+	 * Get the supported request type for this handler.
+	 */
+	Class<T> getSupportedRequestType();
 
 	/**
 	 * Check if this handler can handle the request type.

@@ -5,7 +5,7 @@ import com.google.protobuf.GeneratedMessage;
 
 import io.netty.channel.ChannelId;
 
-public interface INetworkingRequest {
+public interface INetworkingResponse {
 	/**
 	 * Get the channel context to send responses to client.
 	 */

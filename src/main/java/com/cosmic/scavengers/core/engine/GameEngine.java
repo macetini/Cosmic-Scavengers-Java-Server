@@ -10,7 +10,7 @@ import com.cosmic.scavengers.ecs.queue.EcsCommandQueueProcessing;
 import com.cosmic.scavengers.gameplay.queue.GameplayRequestProcessor;
 import com.cosmic.scavengers.gameplay.systems.IntentProcessorSystem;
 import com.cosmic.scavengers.gameplay.systems.MovementSystem;
-import com.cosmic.scavengers.networking.queue.NetworkRequestProcessor;
+import com.cosmic.scavengers.networking.queue.NetworkResponseProcessor;
 
 /**
  * The core game loop component. Runs on a dedicated thread, executes ECS
@@ -33,7 +33,7 @@ public class GameEngine implements Runnable {
 	private boolean running = true;
 
 	public GameEngine(
-			NetworkRequestProcessor networkRequestProcessor,
+			NetworkResponseProcessor networkRequestProcessor,
 			GameplayRequestProcessor gameplayRequestProcessor,
 			EcsCommandQueueProcessing commandHandlerSystem,
 			IntentProcessorSystem intentProcessorSystem,
