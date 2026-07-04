@@ -14,12 +14,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
 @Component
-public class EntityMoveCommandHandler implements ICommandBinaryHandler {
-	private static final Logger log = LoggerFactory.getLogger(EntityMoveCommandHandler.class);
+public class EntityMoveHandler implements ICommandBinaryHandler {
+	private static final Logger log = LoggerFactory.getLogger(EntityMoveHandler.class);
 
 	private final EntityActionService entityActionService;
 
-	public EntityMoveCommandHandler(EntityActionService entityActionService) {
+	public EntityMoveHandler(EntityActionService entityActionService) {
 		this.entityActionService = entityActionService;
 	}
 
@@ -29,24 +29,19 @@ public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 	}
 
 	@Override
-	public void handle(ChannelHandlerContext ctx, ByteBuf payload) {
+	public void handle(Long playerId, ByteBuf payload) {
 		if (log.isDebugEnabled()) {
-			log.debug("Handling {} command for channel {}.", getCommand().getLogText(), ctx.channel().id());
+			log.debug("Handling Command: [{}] | Channel: '{}'.", getCommand().getLogText(), playerId);
 		}
 
 		// (4(Integer)) Data Length + (22(MoveIntentProto)) = 26 bytes
 		if (payload.readableBytes() < 26) {
-			log.error("Malformed move command from Chanel Id '{}': expected 26 bytes, got {}", 
-					ctx.channel().id(), payload.readableBytes());
+			log.error("Malformed '{}' Payload too short. Expected at least 26 bytes, but got {} bytes.", 
+					this.getCommand().getLogText(), payload.readableBytes());
 			return;
 		}
 
-		try {
-			Long playerId = (Long) ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).get();
-			if (playerId == null) {
-				throw new IllegalStateException("Player ID not found in channel attributes for channel: " + ctx.channel().id());
-			}
-            
+		try {			
             final int dataLength = payload.readInt();
     		final ByteBuf protoData = payload.readBytes(dataLength);
 
@@ -56,7 +51,8 @@ public class EntityMoveCommandHandler implements ICommandBinaryHandler {
 			
 			protoData.release();
 		} catch (Exception e) {
-			log.error("Malformed move command from Channel Id '{}': {}", ctx.channel().id(), e.getMessage());
+			log.error("Error processing '{}' command for playerId '{}': {}", 
+					getCommand().getLogText(), playerId, e.getMessage(), e);
 		}
 	}
 }

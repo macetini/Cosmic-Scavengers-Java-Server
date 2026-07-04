@@ -4,5 +4,10 @@ import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 
 import io.netty.channel.ChannelId;
 
-public record InitSpawnRequest(ChannelId channelId, Long playerId) implements IGameplayRequest {
+public record GetAllPlayerEntitiesRequest(Long playerId) implements IGameplayRequest {
+
+	@Override
+	public Long getPlayerId() {
+		return playerId;
+	}
 }

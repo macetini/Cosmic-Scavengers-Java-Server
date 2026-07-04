@@ -6,11 +6,10 @@ import com.google.protobuf.GeneratedMessage;
 import io.netty.channel.ChannelId;
 
 public interface INetworkingRequest {
-	
 	/**
 	 * Get the channel context to send responses to client.
 	 */
-	ChannelId getChannelId();
+	Long getPlayerId();
 	
 	NetworkBinaryCommand getCommand();
 	

@@ -10,4 +10,9 @@ public record MoveRequestData(
 		Long playerId,
         Long entityId,
         Vector3Long target) implements IGameplayRequest {
+
+	@Override
+	public Long getPlayerId() {		
+		return playerId;
+	}
 }

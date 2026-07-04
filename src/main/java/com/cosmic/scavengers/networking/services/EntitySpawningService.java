@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.cosmic.scavengers.gameplay.queue.GameplayRequestQueue;
-import com.cosmic.scavengers.gameplay.queue.requests.InitSpawnRequest;
+import com.cosmic.scavengers.gameplay.queue.requests.GetAllPlayerEntitiesRequest;
 
 import dev.dominion.ecs.api.Dominion;
 import io.netty.channel.ChannelId;
@@ -20,10 +20,10 @@ public class EntitySpawningService {
 		this.gameplayRequestQueue = gameplayRequestQueue;
 	}
     
-    public void processPlayerEntitiesSpawnRequest(ChannelId id, Long playerId) {
+    public void processPlayerEntitiesSpawnRequest(Long playerId) {
     	log.debug("Processing Player Entities Spawn Request for Player ID: '{}'", playerId);
     	
-    	InitSpawnRequest request = new InitSpawnRequest(id, playerId);
+    	GetAllPlayerEntitiesRequest request = new GetAllPlayerEntitiesRequest(playerId);
     	gameplayRequestQueue.submit(request);
     }
 }

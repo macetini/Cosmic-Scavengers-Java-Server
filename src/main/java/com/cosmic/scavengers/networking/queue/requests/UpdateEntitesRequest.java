@@ -7,11 +7,11 @@ import com.google.protobuf.GeneratedMessage;
 
 import io.netty.channel.ChannelId;
 
-public record UpdateEntitesRequest(ChannelId channelId, EntitySyncResponse response) implements INetworkingRequest {
+public record UpdateEntitesRequest(Long playerId, EntitySyncResponse response) implements INetworkingRequest {
 
 	@Override
-	public ChannelId getChannelId() {
-		return channelId;
+	public Long getPlayerId() {
+		return playerId;
 	}
 	
 	@Override

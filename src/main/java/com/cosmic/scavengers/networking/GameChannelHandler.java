@@ -34,8 +34,7 @@ public class GameChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		log.debug("Client connected: {}", ctx.channel().remoteAddress());
-		this.ctxRef = ctx;
-		commandRouter.addChannel(ctx);
+		this.ctxRef = ctx;		
 		super.channelActive(ctx);
 	}
 

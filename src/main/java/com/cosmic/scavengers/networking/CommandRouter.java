@@ -2,6 +2,7 @@ package com.cosmic.scavengers.networking;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -14,11 +15,11 @@ import com.cosmic.scavengers.core.commands.ICommandTextHandler;
 import com.cosmic.scavengers.networking.commands.CommandType;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
 import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
+import com.cosmic.scavengers.networking.constants.NetworkAttributeKeys;
 import com.google.protobuf.GeneratedMessage;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelId;
 import io.netty.util.CharsetUtil;
 import jakarta.annotation.PostConstruct;
 
@@ -51,8 +52,8 @@ public class CommandRouter {
 		this.messageDispatcher = messageDispatcher;
 	}
 	
-	public void addChannel(ChannelHandlerContext ctx) {
-		channelRegistry.add(ctx);
+	public void addChannel(Long playerId, ChannelHandlerContext ctx) {
+		channelRegistry.add(playerId, ctx);
 	}
 	
 	public void removeChannel(ChannelHandlerContext ctx) {
@@ -99,14 +100,13 @@ public class CommandRouter {
 	}
 
 	private void routeTextCommand(ChannelHandlerContext ctx, ByteBuf payload) {
-		String message = payload.toString(CharsetUtil.UTF_8).trim();
-		String[] parts = message.split(TEXT_COMMAND_DELIMITER);
+		String[] parts = parseTextCommandParts(payload);
 		if (parts.length == 0) {
 			log.warn("Received empty text command.");
 			return;
 		}
 		String commandCode = parts[0];
-		NetworkTextCommand command = NetworkTextCommand.fromCode(commandCode);
+		NetworkTextCommand command = resolveTextCommand(commandCode);
 
 		if (command == null) {
 			log.warn("Received unknown text command code: '{}'. Dropping payload.", commandCode);
@@ -125,6 +125,30 @@ public class CommandRouter {
 		}
 	}
 
+	private String[] parseTextCommandParts(ByteBuf payload) {
+		String message = payload.toString(CharsetUtil.UTF_8).trim();
+		return message.split(TEXT_COMMAND_DELIMITER);
+	}
+
+	private NetworkTextCommand resolveTextCommand(String commandCode) {
+		return NetworkTextCommand.fromCode(commandCode);
+	}
+
+	private Long validatePlayerIdentity(ChannelHandlerContext ctx, ByteBuf payload) {
+		Long playerId = (Long) ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).get();
+		if (playerId == null) {
+			throw new IllegalStateException("Player ID not found in channel attributes for channel: " + ctx.channel().id());
+		}
+
+		Long payloadPlayerId = payload.readLong();
+		if (!Objects.equals(playerId, payloadPlayerId)) {
+			log.error("Player ID mismatch: Channel PlayerId '{}' does not match Payload PlayerId '{}'.", playerId, payloadPlayerId);
+			return null;
+		}
+
+		return playerId;
+	}
+
 	private void routeBinaryCommand(ChannelHandlerContext ctx, ByteBuf payload) {
 		if (payload.readableBytes() < 2) {
 			log.warn("Binary Payload too short to contain command.");
@@ -134,9 +158,11 @@ public class CommandRouter {
 		short commandCode = payload.readShort();
 		NetworkBinaryCommand command = NetworkBinaryCommand.fromCode(commandCode);
 		if (command == null) {
-			log.error("Received unknown command code: '0x{}'. Dropping payload.", 
-					Integer.toHexString(commandCode & 0xFFFF));
-			payload.release(); // TODO - Check if this done automatically.
+			if(log.isErrorEnabled()) {			
+				log.error("Received unknown command code: '0x{}'. Dropping payload.", 
+						Integer.toHexString(commandCode & 0xFFFF));
+			}
+			payload.release();
 			return;
 		}
 
@@ -147,15 +173,20 @@ public class CommandRouter {
 		}		
 
 		if (handler != null) {
-			handler.handle(ctx, payload);
+			Long playerId = validatePlayerIdentity(ctx, payload);
+			if (playerId == null) {
+				return;
+			}
+			this.channelRegistry.add(playerId, ctx);
+			handler.handle(playerId, payload);
 		} else {
 			log.warn("No Handler implemented for [Inbound Command] | Log: [{}]", command.getLogText());
-			payload.release(); // TODO - Check if this done automatically.
+			payload.release();
 		}
 	}
 	
-	public void routeOutbound(ChannelId channelId, CommandType commandType, NetworkBinaryCommand command, GeneratedMessage message) {
-		ChannelHandlerContext ctx = channelRegistry.get(channelId);
+	public void routeOutbound(Long playerId, CommandType commandType, NetworkBinaryCommand command, GeneratedMessage message) {		
+		ChannelHandlerContext ctx = channelRegistry.get(playerId);
 		routeOutbound(ctx, commandType, command, message);
 	}
 	
@@ -165,7 +196,6 @@ public class CommandRouter {
 			log.trace("Routing [Outbound TEXT] Command | Type: [{}]", commandType);
 			break;
 		case TYPE_BINARY:		
-			log.trace("Routing [Outbound BINARY] Command | Type: [{}]", commandType);
 			messageDispatcher.sendBinaryProtobufMessage(ctx, message, command.getCode());
 			break;
 		case TYPE_UNKNOWN:

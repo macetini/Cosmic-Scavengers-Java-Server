@@ -49,6 +49,6 @@ public class NetworkRequestProcessor implements Runnable {
 	}
 
 	private void processRequest(INetworkingRequest request) {
-		commandRouter.routeOutbound(request.getChannelId(), CommandType.TYPE_BINARY, request.getCommand(), request.getMessage());		
+		commandRouter.routeOutbound(request.getPlayerId(), CommandType.TYPE_BINARY, request.getCommand(), request.getMessage());		
 	}
 }

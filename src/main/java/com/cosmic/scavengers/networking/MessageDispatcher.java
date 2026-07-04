@@ -55,9 +55,12 @@ public class MessageDispatcher {
 	 */
 	public void sendBinaryProtobufMessage(ChannelHandlerContext ctx, GeneratedMessage message, short command) {
 		if (ctx == null || message == null) {
-			log.warn("Attempted to send protobuf binary message but context or message was null.");
+			log.warn("Attempted to send binary protobuf message but context or message was null.");
 			return;
 		}
+		log.info("Sending BINARY command '{}' - protobuf message '{}'", 
+				NetworkBinaryCommand.fromCode(command).name(),
+				message.getClass().getSimpleName()); 
 
 		byte[] serializedBytes = message.toByteArray();
 		ByteBuf serializedPayload = Unpooled.buffer(Integer.BYTES + serializedBytes.length);

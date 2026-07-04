@@ -36,7 +36,7 @@ public class SpawnService {
 	 * Spawn player entities.
 	 * Queues the spawn command to ECS.
 	 */
-	public void spawnEntities(ChannelId channelId, final List<PlayerEntities> playerEntities) {
+	public void spawnEntities(Long playerId, final List<PlayerEntities> playerEntities) {
 		List<PlayerEntityProto> entitiesProtos = playerEntities
 				.stream()
 				.map(protoFactory::build)
@@ -51,8 +51,8 @@ public class SpawnService {
 		
 		EntitySyncResponse finalMessage = responseBuilder.build();
 
-		UpdateEntitesRequest spawnRequest = new UpdateEntitesRequest(channelId, finalMessage);
+		UpdateEntitesRequest spawnRequest = new UpdateEntitesRequest(playerId, finalMessage);
 		networkingRequestQueue.submit(spawnRequest);
-		log.debug("Spawn request queued for player {} with {} entities.", channelId, entitiesProtos.size());
+		log.debug("Spawn request queued for player {} with {} entities.", playerId, entitiesProtos.size());
 	}
 }

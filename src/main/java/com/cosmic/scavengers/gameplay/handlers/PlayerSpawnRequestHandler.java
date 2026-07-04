@@ -10,13 +10,12 @@ import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.db.services.PlayerInitService;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequestHandler;
-import com.cosmic.scavengers.gameplay.queue.requests.InitSpawnRequest;
+import com.cosmic.scavengers.gameplay.queue.requests.GetAllPlayerEntitiesRequest;
 import com.cosmic.scavengers.gameplay.services.SpawnService;
 
 @Component
-public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<InitSpawnRequest> {
+public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<GetAllPlayerEntitiesRequest> {
 	private static final Logger log = LoggerFactory.getLogger(PlayerSpawnRequestHandler.class);
-	
 	private final PlayerInitService playerInitService;
 	private final SpawnService spawnService;
 
@@ -29,11 +28,11 @@ public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<InitSp
 
 	@Override
 	public boolean canHandle(IGameplayRequest request) {
-		return request instanceof InitSpawnRequest;
+		return request instanceof GetAllPlayerEntitiesRequest;
 	}
 
 	@Override
-	public void handle(InitSpawnRequest request) {
+	public void handle(GetAllPlayerEntitiesRequest request) {
 		log.debug("Processing spawn request for player {}", request.playerId());
 
 		Long playerId = request.playerId();
@@ -47,6 +46,6 @@ public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<InitSp
 		}
 		log.debug("Found {} entities for player ID {}.", playerEntities.size(), playerId);
 
-		spawnService.spawnEntities(request.channelId(), playerEntities);		
+		spawnService.spawnEntities(request.playerId(), playerEntities);		
 	}
 }

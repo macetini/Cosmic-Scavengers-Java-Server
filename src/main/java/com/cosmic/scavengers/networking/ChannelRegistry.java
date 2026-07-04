@@ -13,22 +13,22 @@ import io.netty.channel.ChannelId;
 public class ChannelRegistry {
 	private static final Logger log = LoggerFactory.getLogger(ChannelRegistry.class);
 
-	private final ConcurrentHashMap<ChannelId, ChannelHandlerContext> channels = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Long, ChannelHandlerContext> channels = new ConcurrentHashMap<>();
 
-	public void add(ChannelHandlerContext ctx) {
+	public void add(Long playerId, ChannelHandlerContext ctx) {
 		log.trace("Adding channel {} to registry.", ctx.channel().id());
-		channels.put(ctx.channel().id(), ctx);
+		channels.put(playerId, ctx);
 	}
 
 	public void remove(ChannelHandlerContext ctx) {
 		log.trace("Removing channel {} from registry.", ctx.channel().id());
-		channels.remove(ctx.channel().id());
+		channels.values().removeIf(existingCtx -> existingCtx.channel().id().equals(ctx.channel().id()));
 	}
 
-	public ChannelHandlerContext get(ChannelId id) {
-		if (!channels.containsKey(id)) {
-			log.warn("Channel {} not found in registry.", id);
+	public ChannelHandlerContext get(Long playerId) {
+		if (!channels.containsKey(playerId)) {
+			log.warn("Channel for Player Id '{}' not found in registry.", playerId);
 		}
-		return channels.get(id);
+		return channels.get(playerId);
 	}
 }
