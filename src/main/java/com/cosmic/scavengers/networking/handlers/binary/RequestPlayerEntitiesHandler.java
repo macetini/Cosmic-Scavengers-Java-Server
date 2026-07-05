@@ -6,11 +6,9 @@ import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandBinaryHandler;
 import com.cosmic.scavengers.networking.commands.NetworkBinaryCommand;
-import com.cosmic.scavengers.networking.constants.NetworkAttributeKeys;
 import com.cosmic.scavengers.networking.services.EntitySpawningService;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 
 @Component
 public class RequestPlayerEntitiesHandler implements ICommandBinaryHandler {

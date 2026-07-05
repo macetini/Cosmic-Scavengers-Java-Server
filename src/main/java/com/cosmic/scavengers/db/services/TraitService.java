@@ -7,14 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.db.jpa.domain.TraitDefinition;
-import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionRepository;
+import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionJpaRepository;
 
 @Service
 public class TraitService {
 
-	private final TraitDefinitionRepository traitRepository;
+	private final TraitDefinitionJpaRepository traitRepository;
 
-	public TraitService(TraitDefinitionRepository traitRepository) {
+	public TraitService(TraitDefinitionJpaRepository traitRepository) {
 		this.traitRepository = traitRepository;
 	}
 

@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.cosmic.scavengers.db.jpa.domain.IngestionMetadata;
 
 @Repository
-public interface IngestionMetadataRepository extends JpaRepository<IngestionMetadata, String> {
+public interface IngestionMetadataJpaRepository extends JpaRepository<IngestionMetadata, String> {
 	// Standard CRUD is sufficient to check for file hashes
 }

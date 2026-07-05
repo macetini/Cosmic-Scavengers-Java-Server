@@ -133,7 +133,7 @@ public class CommandRouter {
 
 		short commandCode = payload.readShort();
 		NetworkBinaryCommand command = resolveBinaryCommand(commandCode);
-		if (command == null) {
+		if (command == null) {			
 			log.error("Received unknown command code: '0x{}'. Dropping payload.",
 					Integer.toHexString(commandCode & 0xFFFF));
 			payload.release();

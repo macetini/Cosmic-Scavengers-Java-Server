@@ -17,11 +17,11 @@ import com.cosmic.scavengers.db.model.tables.records.PlayersRecord;
  */
 @Repository
 @Transactional(readOnly = true)
-public class PlayerRepository {
+public class PlayerJooqRepository {
 
 	private final DSLContext dsl;
 
-	public PlayerRepository(DSLContext dsl) {
+	public PlayerJooqRepository(DSLContext dsl) {
 		this.dsl = dsl;
 	}
 

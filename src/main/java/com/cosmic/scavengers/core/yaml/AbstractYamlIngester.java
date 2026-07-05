@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.cosmic.scavengers.core.generators.HashGenerator;
 import com.cosmic.scavengers.db.jpa.domain.IngestionMetadata;
-import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
+import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
 
 public abstract class AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(AbstractYamlIngester.class);
@@ -23,10 +23,10 @@ public abstract class AbstractYamlIngester {
 	private static final String LOCATION_PATTERN_TEMPLATE = "classpath:definitions/%A1/*.yaml";
 	private static final String INTERNAL_PATH_TEMPLATE = "definitions/%A1/%A2";
 
-	protected final IngestionMetadataRepository metaRepo;
+	protected final IngestionMetadataJpaRepository metaRepo;
 	protected final Yaml yaml = new Yaml();
 
-	protected AbstractYamlIngester(IngestionMetadataRepository metaRepo) {
+	protected AbstractYamlIngester(IngestionMetadataJpaRepository metaRepo) {
 		this.metaRepo = metaRepo;
 	}
 

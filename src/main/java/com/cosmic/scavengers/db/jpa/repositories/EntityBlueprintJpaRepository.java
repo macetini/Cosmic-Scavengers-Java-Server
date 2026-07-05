@@ -11,7 +11,7 @@ import java.util.List;
  * BlueprintService to load "Cold" data from Postgres.
  */
 @Repository
-public interface EntityBlueprintRepository extends JpaRepository<EntityBlueprint, String> {
+public interface EntityBlueprintJpaRepository extends JpaRepository<EntityBlueprint, String> {
 
 	/**
 	 * Useful for filtering blueprints by their category (e.g., 'UNIT', 'STRUCTURE')

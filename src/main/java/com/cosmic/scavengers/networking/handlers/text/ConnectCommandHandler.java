@@ -27,12 +27,7 @@ public class ConnectCommandHandler implements ICommandTextHandler {
 
 	@Override
 	public void handle(ChannelHandlerContext ctx, String[] parts) {
-		log.info("Handling {} text command for channel {}.", getCommand().getLogName(), ctx.channel().id());
-
-		if (ctx == null) {
-			log.error("ChannelHandlerContext is null! Cannot send response.");
-			return;
-		}
+		log.info("Handling {} text command for channel {}.", getCommand().getLogName(), ctx.channel().id());		
 
 		if (!ctx.channel().isActive()) {
 			log.error("Channel is not active! Cannot send response to channel {}.", ctx.channel().id());

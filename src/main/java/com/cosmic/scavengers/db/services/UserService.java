@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.utils.SecurityUtil;
-import com.cosmic.scavengers.db.jooq.repositories.PlayerRepository;
+import com.cosmic.scavengers.db.jooq.repositories.PlayerJooqRepository;
 import com.cosmic.scavengers.db.model.tables.pojos.Players;
 
 /**
@@ -22,9 +22,9 @@ import com.cosmic.scavengers.db.model.tables.pojos.Players;
 public class UserService {
 	private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-	private final PlayerRepository jooqPlayerRepository;
+	private final PlayerJooqRepository jooqPlayerRepository;
 
-	public UserService(PlayerRepository playerRepository) {
+	public UserService(PlayerJooqRepository playerRepository) {
 		this.jooqPlayerRepository = playerRepository;
 	}
 

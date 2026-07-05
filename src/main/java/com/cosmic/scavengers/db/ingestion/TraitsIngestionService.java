@@ -10,16 +10,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cosmic.scavengers.core.yaml.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.TraitsConf;
 import com.cosmic.scavengers.db.jpa.domain.TraitDefinition;
-import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
-import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionRepository;
+import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
+import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionJpaRepository;
 
 @Service
 public class TraitsIngestionService extends AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(TraitsIngestionService.class);	
 
-	private final TraitDefinitionRepository traitRepo;
+	private final TraitDefinitionJpaRepository traitRepo;
 
-	public TraitsIngestionService(IngestionMetadataRepository metaRepo, TraitDefinitionRepository traitRepo) {
+	public TraitsIngestionService(IngestionMetadataJpaRepository metaRepo, TraitDefinitionJpaRepository traitRepo) {
 		super(metaRepo);
 		this.traitRepo = traitRepo;
 	}

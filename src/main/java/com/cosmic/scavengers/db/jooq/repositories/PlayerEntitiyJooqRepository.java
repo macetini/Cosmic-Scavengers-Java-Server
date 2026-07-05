@@ -10,11 +10,11 @@ import org.springframework.stereotype.Repository;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 
 @Repository
-public class PlayerEntitiyRepository {
+public class PlayerEntitiyJooqRepository {
 
 	private final DSLContext dsl;
 
-	public PlayerEntitiyRepository(DSLContext dsl) {
+	public PlayerEntitiyJooqRepository(DSLContext dsl) {
 		this.dsl = dsl;
 	}
 

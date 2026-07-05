@@ -9,14 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.model.BlueprintTemplate;
-import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
+import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintJpaRepository;
 
 @Service
 public class BlueprintService {
 
-	private final EntityBlueprintRepository repository;
+	private final EntityBlueprintJpaRepository repository;
 
-	public BlueprintService(EntityBlueprintRepository repository) {
+	public BlueprintService(EntityBlueprintJpaRepository repository) {
 		this.repository = repository;
 	}
 

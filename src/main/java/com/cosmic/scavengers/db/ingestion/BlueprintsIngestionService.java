@@ -16,8 +16,8 @@ import com.cosmic.scavengers.core.yaml.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
 import com.cosmic.scavengers.db.ingestion.exceptions.BlueprintMappingException;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
-import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintRepository;
-import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataRepository;
+import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintJpaRepository;
+import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,11 +26,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BlueprintsIngestionService extends AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(BlueprintsIngestionService.class);
 
-	private final EntityBlueprintRepository blueprintRepo;		
+	private final EntityBlueprintJpaRepository blueprintRepo;		
 	private final ObjectMapper jsonMapper;	
 
-	public BlueprintsIngestionService(IngestionMetadataRepository metaRepo, 
-			EntityBlueprintRepository blueprintRepo,			
+	public BlueprintsIngestionService(IngestionMetadataJpaRepository metaRepo, 
+			EntityBlueprintJpaRepository blueprintRepo,			
 			ObjectMapper mapper) {
 		super(metaRepo);
 

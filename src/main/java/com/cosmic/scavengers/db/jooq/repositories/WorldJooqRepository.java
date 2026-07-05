@@ -12,15 +12,18 @@ import com.cosmic.scavengers.db.model.tables.pojos.Worlds;
 
 @Repository
 @Transactional(readOnly = true)
-public class WorldRepository {
+public class WorldJooqRepository {
 	private final DSLContext dsl;
 
-	public WorldRepository(DSLContext dsl) {
+	public WorldJooqRepository(DSLContext dsl) {
 		this.dsl = dsl;
 	}
 
 	public Optional<Worlds> getById(long id) {
-		return dsl.selectFrom(WORLDS).where(WORLDS.ID.eq(id)).fetchOptional().map(r -> r.into(Worlds.class));
+		return dsl.selectFrom(WORLDS)
+				.where(WORLDS.ID.eq(id))
+				.fetchOptional()
+				.map(r -> r.into(Worlds.class));
 	}
 
 	public Optional<Worlds> getDefaultWorld() {
