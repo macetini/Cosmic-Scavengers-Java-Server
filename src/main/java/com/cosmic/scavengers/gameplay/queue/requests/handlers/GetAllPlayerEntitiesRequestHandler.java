@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.gameplay.handlers;
+package com.cosmic.scavengers.gameplay.queue.requests.handlers;
 
 import java.util.List;
 
@@ -14,12 +14,12 @@ import com.cosmic.scavengers.gameplay.queue.requests.GetAllPlayerEntitiesRequest
 import com.cosmic.scavengers.gameplay.services.SpawnService;
 
 @Component
-public class PlayerSpawnRequestHandler implements IGameplayRequestHandler<GetAllPlayerEntitiesRequest> {
-	private static final Logger log = LoggerFactory.getLogger(PlayerSpawnRequestHandler.class);
+public class GetAllPlayerEntitiesRequestHandler implements IGameplayRequestHandler<GetAllPlayerEntitiesRequest> {
+	private static final Logger log = LoggerFactory.getLogger(GetAllPlayerEntitiesRequestHandler.class);
 	private final PlayerInitService playerInitService;
 	private final SpawnService spawnService;
 
-	public PlayerSpawnRequestHandler(
+	public GetAllPlayerEntitiesRequestHandler(
 			PlayerInitService playerInitService, 
 			SpawnService spawnService) {
 		this.playerInitService = playerInitService;

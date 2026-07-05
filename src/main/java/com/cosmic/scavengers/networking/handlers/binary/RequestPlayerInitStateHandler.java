@@ -23,7 +23,7 @@ public class RequestPlayerInitStateHandler implements ICommandBinaryHandler {
 	
 	@Override
 	public void handle(Long playerId, ByteBuf payload) {
-		log.info("Handling Command: [{}] | Player ID: '{}'.", getCommand().getLogText(), playerId);		
+		log.info("Getting Player Init State for Player ID: '{}'.", playerId);	
 				
 //		Worlds worlds = playerInitService.getCurrentWorldDataByPlayerId(playerId);
 //		

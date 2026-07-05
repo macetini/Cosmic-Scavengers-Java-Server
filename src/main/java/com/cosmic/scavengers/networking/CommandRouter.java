@@ -2,7 +2,6 @@ package com.cosmic.scavengers.networking;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -100,13 +99,14 @@ public class CommandRouter {
 	}
 
 	private void routeTextCommand(ChannelHandlerContext ctx, ByteBuf payload) {
-		String[] parts = parseTextCommandParts(payload);
+		String message = payload.toString(CharsetUtil.UTF_8).trim();
+		String[] parts = message.split(TEXT_COMMAND_DELIMITER);
 		if (parts.length == 0) {
 			log.warn("Received empty text command.");
 			return;
 		}
 		String commandCode = parts[0];
-		NetworkTextCommand command = resolveTextCommand(commandCode);
+		NetworkTextCommand command = NetworkTextCommand.fromCode(commandCode);
 
 		if (command == null) {
 			log.warn("Received unknown text command code: '{}'. Dropping payload.", commandCode);
@@ -125,64 +125,70 @@ public class CommandRouter {
 		}
 	}
 
-	private String[] parseTextCommandParts(ByteBuf payload) {
-		String message = payload.toString(CharsetUtil.UTF_8).trim();
-		return message.split(TEXT_COMMAND_DELIMITER);
-	}
-
-	private NetworkTextCommand resolveTextCommand(String commandCode) {
-		return NetworkTextCommand.fromCode(commandCode);
-	}
-
-	private Long validatePlayerIdentity(ChannelHandlerContext ctx, ByteBuf payload) {
-		Long playerId = (Long) ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).get();
-		if (playerId == null) {
-			throw new IllegalStateException("Player ID not found in channel attributes for channel: " + ctx.channel().id());
-		}
-
-		Long payloadPlayerId = payload.readLong();
-		if (!Objects.equals(playerId, payloadPlayerId)) {
-			log.error("Player ID mismatch: Channel PlayerId '{}' does not match Payload PlayerId '{}'.", playerId, payloadPlayerId);
-			return null;
-		}
-
-		return playerId;
-	}
-
 	private void routeBinaryCommand(ChannelHandlerContext ctx, ByteBuf payload) {
-		if (payload.readableBytes() < 2) {
+		if (!hasMinimumBinaryPayload(payload)) {
 			log.warn("Binary Payload too short to contain command.");
 			return;
 		}
 
 		short commandCode = payload.readShort();
-		NetworkBinaryCommand command = NetworkBinaryCommand.fromCode(commandCode);
+		NetworkBinaryCommand command = resolveBinaryCommand(commandCode);
 		if (command == null) {
-			if(log.isErrorEnabled()) {			
-				log.error("Received unknown command code: '0x{}'. Dropping payload.", 
-						Integer.toHexString(commandCode & 0xFFFF));
-			}
+			log.error("Received unknown command code: '0x{}'. Dropping payload.",
+					Integer.toHexString(commandCode & 0xFFFF));
 			payload.release();
 			return;
 		}
 
-		ICommandBinaryHandler handler = binaryCommandsMap.get(command);
-		if(log.isTraceEnabled()) {
-			log.trace("Routing [Inbound BINARY] Command | Code: [{}] | Log: [{}]", 
+		if (log.isTraceEnabled()) {
+			log.trace("Routing [Inbound BINARY] Command | Code: [{}] | Log: [{}]",
 					Integer.toHexString(commandCode & 0xFFFF), command.getLogText());
-		}		
+		}
 
-		if (handler != null) {
-			Long playerId = validatePlayerIdentity(ctx, payload);
-			if (playerId == null) {
-				return;
-			}
-			this.channelRegistry.add(playerId, ctx);
-			handler.handle(playerId, payload);
-		} else {
+		ICommandBinaryHandler handler = binaryCommandsMap.get(command);
+		if (handler == null) {
 			log.warn("No Handler implemented for [Inbound Command] | Log: [{}]", command.getLogText());
 			payload.release();
+			return;
 		}
+
+		Long playerId = validatePlayerId(ctx, payload);
+		if(playerId == null) {
+			payload.release();
+			return;
+		}
+
+		this.channelRegistry.add(playerId, ctx);
+		handler.handle(playerId, payload);
+	}
+
+	private boolean hasMinimumBinaryPayload(ByteBuf payload) {
+		return payload.readableBytes() >= 2;
+	}
+
+	private NetworkBinaryCommand resolveBinaryCommand(short commandCode) {
+		return NetworkBinaryCommand.fromCode(commandCode);
+	}
+	
+	private Long validatePlayerId(ChannelHandlerContext ctx, ByteBuf payload) {
+		Long playerId = (Long) ctx.channel().attr(NetworkAttributeKeys.PLAYER_ID.getKey()).get();
+		if (playerId == null) {
+			throw new IllegalStateException("Player ID not found in channel attributes for channel: " + ctx.channel().id());
+		}
+		
+		if (!isPayloadPlayerIdValid(payload, playerId)) {
+			return null;
+		}
+		return playerId;
+	}
+
+	private boolean isPayloadPlayerIdValid(ByteBuf payload, Long playerId) {
+		long payloadPlayerId = payload.readLong();
+		if (!playerId.equals(payloadPlayerId)) {
+			log.error("Player ID mismatch: Channel PlayerId '{}' does not match Payload PlayerId '{}'.", playerId, payloadPlayerId);
+			return false;
+		}
+		return true;
 	}
 	
 	public void routeOutbound(Long playerId, CommandType commandType, NetworkBinaryCommand command, GeneratedMessage message) {		
@@ -196,6 +202,7 @@ public class CommandRouter {
 			log.trace("Routing [Outbound TEXT] Command | Type: [{}]", commandType);
 			break;
 		case TYPE_BINARY:		
+			log.trace("Routing [Outbound BINARY] Command | Type: [{}]", commandType);
 			messageDispatcher.sendBinaryProtobufMessage(ctx, message, command.getCode());
 			break;
 		case TYPE_UNKNOWN:

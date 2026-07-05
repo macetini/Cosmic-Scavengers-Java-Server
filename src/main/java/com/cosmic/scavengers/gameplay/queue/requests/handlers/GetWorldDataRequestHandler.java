@@ -1,4 +1,4 @@
-package com.cosmic.scavengers.gameplay.handlers;
+package com.cosmic.scavengers.gameplay.queue.requests.handlers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +7,8 @@ import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequestHandler;
 import com.cosmic.scavengers.gameplay.queue.requests.GetWorldDataRequest;
 
-public class WorldDataRequestHandler implements IGameplayRequestHandler<GetWorldDataRequest> {
-	private static final Logger log = LoggerFactory.getLogger(WorldDataRequestHandler.class);
+public class GetWorldDataRequestHandler implements IGameplayRequestHandler<GetWorldDataRequest> {
+	private static final Logger log = LoggerFactory.getLogger(GetWorldDataRequestHandler.class);
 	
 	@Override
 	public Class<GetWorldDataRequest> getSupportedRequestType() {

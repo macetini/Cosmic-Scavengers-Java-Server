@@ -7,7 +7,7 @@ import com.google.protobuf.GeneratedMessage;
 
 import io.netty.channel.ChannelId;
 
-public record UpdateEntitesResponse(Long playerId, EntitySyncResponse response) implements INetworkingResponse {
+public record GetAllPlayerEntitesResponse(Long playerId, EntitySyncResponse response) implements INetworkingResponse {
 
 	@Override
 	public Long getPlayerId() {

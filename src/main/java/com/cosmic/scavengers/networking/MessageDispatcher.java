@@ -58,12 +58,10 @@ public class MessageDispatcher {
 			log.warn("Attempted to send binary protobuf message but context or message was null.");
 			return;
 		}
-		log.info("Sending BINARY command '{}' - protobuf message '{}'", 
-				NetworkBinaryCommand.fromCode(command).name(),
-				message.getClass().getSimpleName()); 
-
+		
 		byte[] serializedBytes = message.toByteArray();
 		ByteBuf serializedPayload = Unpooled.buffer(Integer.BYTES + serializedBytes.length);
+		
 		// Use length-prefix per message so receivers can parse concatenated messages
 		serializedPayload.writeInt(serializedBytes.length);
 		serializedPayload.writeBytes(serializedBytes);
@@ -108,13 +106,10 @@ public class MessageDispatcher {
 		if (payload.refCnt() > 0) {
 			payload.release(); // Release the original/old payload buffer
 		}
-
-		if(log.isTraceEnabled()) {
-			log.trace("Sending BINARY command '{}' - payload-size '{}' bytes", 
-					NetworkBinaryCommand.fromCode(command).name(),
-					payloadSize);
-		}		
-
+	
+		log.info("Sending BINARY command '{}' - payload-size '{}' bytes", 
+				NetworkBinaryCommand.fromCode(command).name(), payloadSize);
+				
 		ctx.writeAndFlush(finalPayload);
 	}
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.cosmic.scavengers.db.model.tables.pojos.PlayerEntities;
 import com.cosmic.scavengers.gameplay.factories.PlayerEntityProtoFactory;
 import com.cosmic.scavengers.networking.queue.NetworkingResponseQueue;
-import com.cosmic.scavengers.networking.queue.responses.UpdateEntitesResponse;
+import com.cosmic.scavengers.networking.queue.responses.GetAllPlayerEntitesResponse;
 import com.cosmicscavengers.networking.protobuf.entities.EntitySyncResponse;
 import com.cosmicscavengers.networking.protobuf.entities.PlayerEntityProto;
 
@@ -51,8 +51,8 @@ public class SpawnService {
 		
 		EntitySyncResponse finalMessage = responseBuilder.build();
 
-		UpdateEntitesResponse spawnRequest = new UpdateEntitesResponse(playerId, finalMessage);
-		networkingRequestQueue.submit(spawnRequest);
+		GetAllPlayerEntitesResponse spawnResponse = new GetAllPlayerEntitesResponse(playerId, finalMessage);
+		networkingRequestQueue.submit(spawnResponse);
 		log.debug("Spawn request queued for player {} with {} entities.", playerId, entitiesProtos.size());
 	}
 }
