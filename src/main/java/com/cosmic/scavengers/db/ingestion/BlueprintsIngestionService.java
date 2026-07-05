@@ -19,22 +19,21 @@ import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintJpaRepository;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class BlueprintsIngestionService extends AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(BlueprintsIngestionService.class);
 
-	private final EntityBlueprintJpaRepository blueprintRepo;		
+	private final EntityBlueprintJpaRepository blueprintJpaRepository;		
 	private final ObjectMapper jsonMapper;	
 
 	public BlueprintsIngestionService(IngestionMetadataJpaRepository metaRepo, 
-			EntityBlueprintJpaRepository blueprintRepo,			
+			EntityBlueprintJpaRepository blueprintJpaRepository,			
 			ObjectMapper mapper) {
 		super(metaRepo);
 
-		this.blueprintRepo = blueprintRepo;		
+		this.blueprintJpaRepository = blueprintJpaRepository;		
 		this.jsonMapper = mapper;
 	}
 
@@ -119,7 +118,7 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 		processedProperties.put(BlueprintsConf.BEHAVIOR_CONFIGS.key(), newConfigs);
 
 		final EntityBlueprint entityBlueprint = 
-				blueprintRepo.findById(blueprintId).orElseGet(() -> createNewBlueprint(blueprintId));
+				blueprintJpaRepository.findById(blueprintId).orElseGet(() -> createNewBlueprint(blueprintId));
 		
 		try {				
 			jsonMapper.updateValue(entityBlueprint, processedProperties);
@@ -149,7 +148,7 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 		blueprint.setCategoryId(category.toUpperCase());
 		blueprint.setUpdatedAt(OffsetDateTime.now());
 
-		blueprintRepo.saveAndFlush(blueprint);
+		blueprintJpaRepository.saveAndFlush(blueprint);
 		log.trace("Saved blueprint: {}", blueprint.getId());
 	}
 }

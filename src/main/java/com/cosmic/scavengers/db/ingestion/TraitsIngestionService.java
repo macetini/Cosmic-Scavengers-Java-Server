@@ -17,11 +17,13 @@ import com.cosmic.scavengers.db.jpa.repositories.TraitDefinitionJpaRepository;
 public class TraitsIngestionService extends AbstractYamlIngester {
 	private static final Logger log = LoggerFactory.getLogger(TraitsIngestionService.class);	
 
-	private final TraitDefinitionJpaRepository traitRepo;
+	private final TraitDefinitionJpaRepository traitJpaRepository;	
 
-	public TraitsIngestionService(IngestionMetadataJpaRepository metaRepo, TraitDefinitionJpaRepository traitRepo) {
-		super(metaRepo);
-		this.traitRepo = traitRepo;
+	public TraitsIngestionService(IngestionMetadataJpaRepository metaRepository, 
+			TraitDefinitionJpaRepository traitJpaRepository) {
+		super(metaRepository);
+		
+		this.traitJpaRepository = traitJpaRepository;		
 	}
 
 	/**
@@ -41,13 +43,13 @@ public class TraitsIngestionService extends AbstractYamlIngester {
 		log.debug("Synchronizing {} Trait definitions for category: [{}]", data.size(), category);
 
 		data.forEach((traitId, properties) -> {		
-			final TraitDefinition trait = traitRepo.findById(traitId).orElse(new TraitDefinition());
+			final TraitDefinition trait = traitJpaRepository.findById(traitId).orElse(new TraitDefinition());
 
 			trait.setId(traitId);
 			trait.setCategory(category.toUpperCase());
 			trait.setData(properties);
 
-			traitRepo.save(trait);
+			traitJpaRepository.save(trait);
 			
 			log.trace("Synced trait: {}", traitId);
 		});
