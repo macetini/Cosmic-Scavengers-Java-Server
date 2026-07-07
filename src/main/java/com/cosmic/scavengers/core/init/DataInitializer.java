@@ -15,6 +15,7 @@ import com.cosmic.scavengers.db.ingestion.TraitsIngestionService;
 import com.cosmic.scavengers.db.ingestion.WorldsIngestionService;
 import com.cosmic.scavengers.gameplay.registries.BlueprintRegistry;
 import com.cosmic.scavengers.gameplay.registries.TraitRegistry;
+import com.cosmic.scavengers.gameplay.registries.WorldsRegistry;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -26,6 +27,7 @@ public class DataInitializer implements CommandLineRunner {
 	
 	private final TraitRegistry traitRegistry;
 	private final BlueprintRegistry blueprintRegistry;
+	private final WorldsRegistry worldsRegistry;
 	
 	private final NettyServer nettyServer;
 	private final GameEngine gameEngine;
@@ -39,8 +41,9 @@ public class DataInitializer implements CommandLineRunner {
 			
 			TraitRegistry traitRegistry,
 			BlueprintRegistry blueprintRegistry, 
+			WorldsRegistry worldsRegistry,
 			
-			NettyServer nettyServer, 
+			NettyServer nettyServer,
 			GameEngine gameEngine) {
 
 		// Ingesters
@@ -51,6 +54,7 @@ public class DataInitializer implements CommandLineRunner {
 		// Registries
 		this.traitRegistry = traitRegistry;
 		this.blueprintRegistry = blueprintRegistry;
+		this.worldsRegistry = worldsRegistry;
 
 		// Threads
 		this.nettyServer = nettyServer;
@@ -78,10 +82,12 @@ public class DataInitializer implements CommandLineRunner {
 			// Phase 2: DB to RAM
 			log.info("Phase [2/3] Registry Sync (DB -> RAM)");
 
-			log.debug("[1/2] Loading TRAITS from Database into Registries.");
+			log.debug("[1/3] Loading TRAITS from Database into Registries.");
 			traitRegistry.load();
-			log.debug("[2/2] Loading BLUEPRINTS from Database into Registries.");
+			log.debug("[2/3] Loading BLUEPRINTS from Database into Registries.");
 			blueprintRegistry.load();
+			log.debug("[3/3] Loading WORLDS from Database into Registries.");
+			worldsRegistry.load();
 
 			log.debug("Phase [2/3] Registry Sync (DB -> RAM) COMPLETE.");
 			//

@@ -71,10 +71,10 @@ public abstract class AbstractYamlIngester {
 		String currentHash = HashGenerator.calculateHash(fileBytes);
 		Optional<IngestionMetadata> meta = metaRepository.findById(path);
 
-//		if (meta.isPresent() && meta.get().getLastHash().equals(currentHash)) {
-//			log.debug("File [{}] is up to date. Skipping.", path);
-//			return;
-//		}
+		if (meta.isPresent() && meta.get().getLastHash().equals(currentHash)) {
+			log.debug("File [{}] is up to date. Skipping.", path);
+			return;
+		}
 
 		log.debug("Changes detected in [{}]. Parsing...", path);
 		Map<String, Map<String, Object>> yamlData = yaml.load(new String(fileBytes));
