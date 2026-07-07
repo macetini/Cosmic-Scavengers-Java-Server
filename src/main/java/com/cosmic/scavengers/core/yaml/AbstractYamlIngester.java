@@ -14,6 +14,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.yaml.snakeyaml.Yaml;
 
 import com.cosmic.scavengers.core.generators.HashGenerator;
+import com.cosmic.scavengers.db.ingestion.exceptions.IngestionMappingException;
 import com.cosmic.scavengers.db.jpa.domain.IngestionMetadata;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
 
@@ -23,11 +24,11 @@ public abstract class AbstractYamlIngester {
 	private static final String LOCATION_PATTERN_TEMPLATE = "classpath:definitions/%A1/*.yaml";
 	private static final String INTERNAL_PATH_TEMPLATE = "definitions/%A1/%A2";
 
-	protected final IngestionMetadataJpaRepository metaRepo;
+	protected final IngestionMetadataJpaRepository metaRepository;
 	protected final Yaml yaml = new Yaml();
 
-	protected AbstractYamlIngester(IngestionMetadataJpaRepository metaRepo) {
-		this.metaRepo = metaRepo;
+	protected AbstractYamlIngester(IngestionMetadataJpaRepository metaRepository) {
+		this.metaRepository = metaRepository;
 	}
 
 	protected void syncDirectory(String directory, BiConsumer<Map<String, Map<String, Object>>, String> processor) {
@@ -40,8 +41,10 @@ public abstract class AbstractYamlIngester {
 
 			for (Resource resource : resources) {
 				String fileName = resource.getFilename();
-				if (fileName == null)
+				if (fileName == null) {
+					log.warn("Resource in directory [{}] has no filename. Skipping.", directory);
 					continue;
+				}
 
 				String category = fileName.replace(".yaml", "");
 				String internalPath = INTERNAL_PATH_TEMPLATE.replace("%A1", directory).replace("%A2", fileName);
@@ -50,7 +53,7 @@ public abstract class AbstractYamlIngester {
 			}
 		} catch (Exception e) {
 			log.error("Failed to sync directory [{}]: {}", directory, e.getMessage());
-			throw new RuntimeException("Ingestion failed", e);
+			throw new IngestionMappingException("Ingestion failed", e);
 		}
 	}
 
@@ -62,16 +65,16 @@ public abstract class AbstractYamlIngester {
 			fileBytes = is.readAllBytes();
 		} catch (IOException e) {
 			log.error("[CRITICAL IO ERROR]: Failed to read YAML file at path: '{}'.", path);
-			throw new RuntimeException("Ingestion halted: cannot read " + path, e);
+			throw new IngestionMappingException("Ingestion halted: cannot read " + path, e);
 		}
 
 		String currentHash = HashGenerator.calculateHash(fileBytes);
-		Optional<IngestionMetadata> meta = metaRepo.findById(path);
+		Optional<IngestionMetadata> meta = metaRepository.findById(path);
 
-		if (meta.isPresent() && meta.get().getLastHash().equals(currentHash)) {
-			log.debug("File [{}] is up to date. Skipping.", path);
-			return;
-		}
+//		if (meta.isPresent() && meta.get().getLastHash().equals(currentHash)) {
+//			log.debug("File [{}] is up to date. Skipping.", path);
+//			return;
+//		}
 
 		log.debug("Changes detected in [{}]. Parsing...", path);
 		Map<String, Map<String, Object>> yamlData = yaml.load(new String(fileBytes));
@@ -80,10 +83,10 @@ public abstract class AbstractYamlIngester {
 			processor.accept(yamlData, category);
 		}
 
-		IngestionMetadata record = meta.orElse(new IngestionMetadata());
-		record.setFilePath(path);
-		record.setLastHash(currentHash);
-		record.setUpdatedAt(OffsetDateTime.now());
-		metaRepo.save(record);
+		IngestionMetadata ingestionMetadata = meta.orElse(new IngestionMetadata());
+		ingestionMetadata.setFilePath(path);
+		ingestionMetadata.setLastHash(currentHash);
+		ingestionMetadata.setUpdatedAt(OffsetDateTime.now());
+		metaRepository.save(ingestionMetadata);
 	}
 }

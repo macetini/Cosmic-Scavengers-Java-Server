@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.db.jpa.domain;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,7 +22,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "worlds", uniqueConstraints = @UniqueConstraint(name = "worlds_world_name_key", columnNames = "world_name"))
+@Table(name = "worlds", uniqueConstraints = @UniqueConstraint(name = "worlds_name_key", columnNames = "name"))
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class World {
 
@@ -29,19 +30,19 @@ public class World {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "world_name", nullable = false, length = 50, unique = true)
-	private String worldName;
-
-	@Column(name = "map_seed", nullable = false)
-	private Long mapSeed;
-
-	@Column(name = "sector_size_units", nullable = false)
-	private Integer sectorSizeUnits = 1000;
+	@Column(name = "name", nullable = false, length = 50, unique = true)
+	private String name;
 
 	@Convert(converter = JsonToMapConverter.class)
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "generation_config", columnDefinition = "jsonb", nullable = false)
-	private Map<String, Object> generationConfig = new HashMap<>();
+	@Column(name = "config", columnDefinition = "jsonb", nullable = false)
+	private Map<String, Object> config = new HashMap<>();
+
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private OffsetDateTime createdAt;
+
+	@Column(name = "updated_at", nullable = false)
+	private OffsetDateTime updatedAt;
 
 	public World() {
 	}
@@ -54,36 +55,36 @@ public class World {
 		this.id = id;
 	}
 
-	public String getWorldName() {
-		return worldName;
+	public String getName() {
+		return name;
 	}
 
-	public void setWorldName(String worldName) {
-		this.worldName = worldName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public Long getMapSeed() {
-		return mapSeed;
+	public Map<String, Object> getConfig() {
+		return config;
 	}
 
-	public void setMapSeed(Long mapSeed) {
-		this.mapSeed = mapSeed;
+	public void setConfig(Map<String, Object> config) {
+		this.config = config;
 	}
 
-	public Integer getSectorSizeUnits() {
-		return sectorSizeUnits;
+	public OffsetDateTime getCreatedAt() {
+		return createdAt;
 	}
 
-	public void setSectorSizeUnits(Integer sectorSizeUnits) {
-		this.sectorSizeUnits = sectorSizeUnits;
+	public void setCreatedAt(OffsetDateTime createdAt) {
+		this.createdAt = createdAt;
 	}
 
-	public Map<String, Object> getGenerationConfig() {
-		return generationConfig;
+	public OffsetDateTime getUpdatedAt() {
+		return updatedAt;
 	}
 
-	public void setGenerationConfig(Map<String, Object> generationConfig) {
-		this.generationConfig = generationConfig;
+	public void setUpdatedAt(OffsetDateTime updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
 	@Override
@@ -105,6 +106,6 @@ public class World {
 
 	@Override
 	public String toString() {
-		return "World{" + "id=" + id + ", worldName='" + worldName + '\'' + ", mapSeed=" + mapSeed + '}';
+		return "World{" + "id=" + id + ", name='" + name + '\'' + '}';
 	}
 }

@@ -29,10 +29,10 @@ public class RequestPlayerInitStateHandler implements ICommandBinaryHandler {
 //		
 //		WorldData worldData = WorldData.newBuilder()
 //				.setId(worlds.getId())
-//				.setWorldName(worlds.getWorldName())
-//				.setMapSeed(worlds.getMapSeed())
-//				.setSectorSizeUnits(worlds.getSectorSizeUnits())
-//				.setGenerationConfigJson(worlds.getGenerationConfig().data())
+//				.setWorldName(worlds.getName())
+//				.setMapSeed(0) // mapSeed removed from entity
+//				.setSectorSizeUnits(0) // sectorSizeUnits removed from entity
+//				.setConfigJson(worlds.getConfig().data())
 //				.build();
 	}	
 }

@@ -10,5 +10,5 @@ import com.cosmic.scavengers.db.jpa.domain.World;
 @Repository
 public interface WorldJpaRepository extends JpaRepository<World, Long> {
 
-	Optional<World> findByWorldName(String worldName);
+	Optional<World> findByName(String name);
 }

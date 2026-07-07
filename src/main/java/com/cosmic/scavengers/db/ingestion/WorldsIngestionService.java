@@ -1,5 +1,6 @@
 package com.cosmic.scavengers.db.ingestion;
 
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.yaml.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.WorldsConf;
+import com.cosmic.scavengers.db.jpa.domain.World;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
 import com.cosmic.scavengers.db.jpa.repositories.WorldJpaRepository;
 
@@ -30,26 +32,30 @@ public class WorldsIngestionService extends AbstractYamlIngester {
 	 */
 	@Transactional
 	public void sync() {
-		this.syncDirectory(WorldsConf.DIRECTORY.key(), this::processTraitData);
+		this.syncDirectory(WorldsConf.DIRECTORY.key(), this::processWorldsData);
 	}
 
 	/**
 	 * The implementation of the BiConsumer expected by syncDirectory. Maps the raw
 	 * YAML data to our JPA Entity.
 	 */
-	private void processTraitData(Map<String, Map<String, Object>> data, String category) {		
+	private void processWorldsData(Map<String, Map<String, Object>> data, String category) {		
 		log.debug("Synchronizing {} Worlds definitions for category: [{}]", data.size(), category);
 
-//		data.forEach((traitId, properties) -> {		
-//			final TraitDefinition trait = traitRepository.findById(traitId).orElse(new TraitDefinition());
-//
-//			trait.setId(traitId);
-//			trait.setCategory(category.toUpperCase());
-//			trait.setData(properties);
-//
-//			traitRepository.save(trait);
-//			
-//			log.trace("Synced trait: {}", traitId);
-//		});
+		data.forEach((name, properties) -> {		
+			World world = worldsJpaRepository.findByName(name).orElseGet(() -> {
+				World newWorld = new World();
+				newWorld.setCreatedAt(OffsetDateTime.now());
+				return newWorld;
+			});
+
+			world.setName(name);
+			world.setConfig(properties);
+			world.setUpdatedAt(OffsetDateTime.now());
+
+			worldsJpaRepository.save(world);
+			
+			log.trace("Synced world: {}", name);
+		});
 	}
 }

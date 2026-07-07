@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cosmic.scavengers.core.yaml.AbstractYamlIngester;
 import com.cosmic.scavengers.db.ingestion.conf.BlueprintsConf;
-import com.cosmic.scavengers.db.ingestion.exceptions.BlueprintMappingException;
+import com.cosmic.scavengers.db.ingestion.exceptions.IngestionMappingException;
 import com.cosmic.scavengers.db.jpa.domain.EntityBlueprint;
 import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintJpaRepository;
 import com.cosmic.scavengers.db.jpa.repositories.IngestionMetadataJpaRepository;
@@ -125,11 +125,11 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 		}
 		catch (JsonProcessingException e) {
 			log.error("Failed to parse JSON for blueprint [{}]: {}", blueprintId, e.getMessage());
-			throw new BlueprintMappingException("Failed to parse JSON of Blueprint Id: " + blueprintId, e);
+			throw new IngestionMappingException("Failed to parse JSON of Blueprint Id: " + blueprintId, e);
 		}		
 		catch (Exception e) {
 			log.error("Failed to map blueprint [{}]: {}", blueprintId, e.getMessage());
-			throw new BlueprintMappingException("Failed to map Blurprint Id: " + blueprintId, e);
+			throw new IngestionMappingException("Failed to map Blurprint Id: " + blueprintId, e);
 		}
 		
 		return entityBlueprint;

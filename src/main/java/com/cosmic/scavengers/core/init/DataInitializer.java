@@ -69,7 +69,7 @@ public class DataInitializer implements CommandLineRunner {
 			traitsIngester.sync();
 			log.debug("[2/3] Synchronizing BLUEPRINT definitions from filesystem.");
 			blueprintIngester.sync();
-			log.debug("[3/3] Synchronizing WORL definitions from filesystem.");
+			log.debug("[3/3] Synchronizing WORLD definitions from filesystem.");
 			worldsIngester.sync();
 
 			log.debug("Persistence Sync (YAML -> DB) COMPLETE.");

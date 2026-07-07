@@ -6,7 +6,7 @@ alpha:
   max_elevation_step: 16
   skirt_depth: 16
  noise:
-  seed: 11
+  seed: 133740
   scale: 0.02
   octaves: 4
   persistence: 0.5
