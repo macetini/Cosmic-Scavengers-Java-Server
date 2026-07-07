@@ -2,10 +2,12 @@ package com.cosmic.scavengers.networking.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.cosmic.scavengers.gameplay.queue.GameplayRequestQueue;
 import com.cosmic.scavengers.gameplay.queue.requests.GetWorldDataRequest;
 
+@Service
 public class PlayerWorldService {
 	private static final Logger log = LoggerFactory.getLogger(PlayerWorldService.class);
 	

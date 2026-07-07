@@ -56,8 +56,8 @@ public class BlueprintRegistry {
 			    }			    
 			    
 			    blueprintTemplate.traitValues().put(traitId, Collections.unmodifiableMap(finalProperties));
-			});		
-						
+			});
+			
 			cache.put(blueprintTemplate.id(), blueprintTemplate);
 		});
 		
