@@ -21,5 +21,5 @@ public class WorldService {
 
 	public List<World> loadAllWorlds() {
 		return worldRepository.findAll();
-	}
+	}	
 }

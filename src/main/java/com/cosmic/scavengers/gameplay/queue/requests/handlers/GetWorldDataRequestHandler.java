@@ -2,11 +2,13 @@ package com.cosmic.scavengers.gameplay.queue.requests.handlers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequestHandler;
 import com.cosmic.scavengers.gameplay.queue.requests.GetWorldDataRequest;
 
+@Component
 public class GetWorldDataRequestHandler implements IGameplayRequestHandler<GetWorldDataRequest> {
 	private static final Logger log = LoggerFactory.getLogger(GetWorldDataRequestHandler.class);
 	
@@ -23,6 +25,6 @@ public class GetWorldDataRequestHandler implements IGameplayRequestHandler<GetWo
 	@Override
     public void handle(GetWorldDataRequest request) {
 		log.info("Handling GetWorldDataRequest for player ID: {}", request.playerId());
-		// Implement the logic to fetch and return world data for the player
+		
 	}
 }

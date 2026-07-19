@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.ecs.commands.meta.IEcsCommand;
-import com.cosmic.scavengers.gameplay.registries.EntityRegistry;
 
 import dev.dominion.ecs.api.Dominion;
 

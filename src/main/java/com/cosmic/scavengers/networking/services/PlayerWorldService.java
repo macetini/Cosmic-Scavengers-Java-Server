@@ -19,7 +19,6 @@ public class PlayerWorldService {
 	
 	public void processPlayerWorldDataRequest(Long playerId) {
 		log.debug("Processing Player World Data Request for Player ID: '{}'", playerId);
-		
 		// Create a request to get the player's world data
 		GetWorldDataRequest request = new GetWorldDataRequest(playerId);
 		gameplayRequestQueue.submit(request);
