@@ -18,8 +18,8 @@ public class WorldsRegistry {
 
 	private final WorldService worldService;
 	
-	// Key: World Name (or could use ID)
-	private final Map<String, World> cache = new ConcurrentHashMap<>();
+	// Fast lookup for the Game Engine
+	private final Map<Long, World> cache = new ConcurrentHashMap<>();
 
 	public WorldsRegistry(WorldService worldService) {
 		this.worldService = worldService;
@@ -28,18 +28,18 @@ public class WorldsRegistry {
 	public void load() {
 		log.debug("Caching Worlds from DB.");
 
-		cache.clear();
+		cache.clear();		
 
 		worldService.loadAllWorlds().forEach(world -> {
-			log.trace("Caching World '{}'", world.getName());
-			cache.put(world.getName(), world);
+			log.trace("Caching World '{}' [ID: {}]", world.getName(), world.getId());
+			cache.put(world.getId(), world);			
 		});
 		
 		log.debug("Successfully cached {} Worlds.", cache.size());
 	}
 
-	public Optional<World> get(String name) {
-		return Optional.ofNullable(cache.get(name));
+	public Optional<World> get(Long id) {
+		return Optional.ofNullable(cache.get(id));
 	}
 
 	public Collection<World> getAll() {

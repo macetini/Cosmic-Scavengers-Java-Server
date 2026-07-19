@@ -15,8 +15,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -26,8 +24,7 @@ import jakarta.persistence.UniqueConstraint;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class World {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Id	
 	private Long id;
 
 	@Column(name = "name", nullable = false, length = 50, unique = true)
