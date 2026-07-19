@@ -13,8 +13,6 @@ import com.cosmic.scavengers.networking.queue.responses.GetAllPlayerEntitesRespo
 import com.cosmicscavengers.networking.protobuf.entities.EntitySyncResponse;
 import com.cosmicscavengers.networking.protobuf.entities.PlayerEntityProto;
 
-import io.netty.channel.ChannelId;
-
 /**
  * Service for spawning player entities.
  * Coordinates between gameplay and ECS layers.
@@ -34,6 +32,7 @@ public class SpawnService {
 
 	/**
 	 * Spawn player entities.
+	 * 
 	 * Queues the spawn command to ECS.
 	 */
 	public void spawnEntities(Long playerId, final List<PlayerEntities> playerEntities) {
@@ -43,11 +42,7 @@ public class SpawnService {
 				.toList();
 		
 		EntitySyncResponse.Builder responseBuilder = EntitySyncResponse.newBuilder();
-		entitiesProtos.forEach(responseBuilder::addEntities);
-		
-		PlayerEntities firstEntity = playerEntities.get(0);
-		responseBuilder.setWorldId(firstEntity.getWorldId());
-		responseBuilder.setSectorId(firstEntity.getSectorId());
+		entitiesProtos.forEach(responseBuilder::addEntities);		
 		
 		EntitySyncResponse finalMessage = responseBuilder.build();
 

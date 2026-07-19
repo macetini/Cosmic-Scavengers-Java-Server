@@ -84,8 +84,6 @@ message EntityManifestResponse {
     repeated EntityBlueprintProto blueprints = 3;
 }
 
-message EntitySyncResponse {
-    int64 world_id = 1;
-    int64 sector_id = 2;
+message EntitySyncResponse {    
     repeated PlayerEntityProto entities = 3;
 }
