@@ -111,8 +111,8 @@ public class WorldsIngestionService extends AbstractYamlIngester {
 			WorldMetadata metadata, 
 			List<World> entitiesToSave) {
 		if (!yamlKeyName.equals(metadata.name())) {
-			log.warn("YAML root key '{}' does not match filename name '{}'. Skipping key to avoid corruption.", yamlKeyName,
-					metadata.name());
+			log.warn("YAML root key '{}' does not match filename name '{}'. Skipping key to avoid corruption.", 
+					yamlKeyName, metadata.name());
 			return;
 		}
 
@@ -120,6 +120,7 @@ public class WorldsIngestionService extends AbstractYamlIngester {
 			World newWorld = new World();
 			newWorld.setId(metadata.id());
 			newWorld.setCreatedAt(OffsetDateTime.now());
+			
 			return newWorld;
 		});
 

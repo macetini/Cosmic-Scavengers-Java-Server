@@ -17,6 +17,11 @@ public class PlayerEntitiyJooqRepository {
 	public PlayerEntitiyJooqRepository(DSLContext dsl) {
 		this.dsl = dsl;
 	}
+	
+//	public Long getCurrentWorldIdForPlayerId(long playerId) {
+//		return dsl
+//				.select(PLAYER)
+//	}
 
 	/**
 	 * Finds all player entities owned by a specific player ID.

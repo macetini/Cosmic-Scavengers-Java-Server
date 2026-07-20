@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.cosmic.scavengers.core.commands.ICommandTextHandler;
-import com.cosmic.scavengers.db.model.tables.pojos.Players;
+import com.cosmic.scavengers.db.jpa.domain.Player;
 import com.cosmic.scavengers.db.services.UserService;
 import com.cosmic.scavengers.networking.MessageDispatcher;
 import com.cosmic.scavengers.networking.commands.NetworkTextCommand;
@@ -40,10 +40,10 @@ public class RegisterCommandHandler implements ICommandTextHandler {
 		}
 		String username = payload[1];
 		String password = payload[2];
-		Optional<Players> playerOptional = userService.registerUser(username, password);
+		Optional<Player> playerOptional = userService.registerUser(username, password);
 
 		if (playerOptional.isPresent()) {
-			Players player = playerOptional.get();
+			Player player = playerOptional.get();
 			log.info("Player {} (ID: {}) registered and logged in.", username, player.getId());
 			messageDispatcher.sendTextMessage(ctx, "S_REGISTER_OK|" + player.getId());
 		} else {

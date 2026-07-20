@@ -14,15 +14,15 @@ import com.cosmic.scavengers.db.jpa.repositories.EntityBlueprintJpaRepository;
 @Service
 public class BlueprintService {
 
-	private final EntityBlueprintJpaRepository repository;
+	private final EntityBlueprintJpaRepository blueprintRepository;
 
 	public BlueprintService(EntityBlueprintJpaRepository repository) {
-		this.repository = repository;
+		this.blueprintRepository = repository;
 	}
 
 	@Transactional(readOnly = true)
 	public List<BlueprintTemplate> loadAllTemplates() {
-		return repository
+		return blueprintRepository
 				.findAll()
 				.stream()
 				.map(this::mapToTemplate)
