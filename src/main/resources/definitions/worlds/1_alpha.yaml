@@ -1,10 +1,10 @@
 alpha:
  terrain:
-  chunk_size: 64
-  tile_size: 16
-  elevation_step: 16
-  max_elevation_step: 16
-  skirt_depth: 16
+  chunkSize: 64
+  tileSize: 16
+  elevationStep: 16
+  maxElevationStep: 16
+  skirtDepth: 16
  noise:
   seed: 133740
   scale: 0.02
