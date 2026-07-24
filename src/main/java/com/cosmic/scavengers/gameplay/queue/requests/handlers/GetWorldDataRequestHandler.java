@@ -9,22 +9,28 @@ import com.cosmic.scavengers.db.services.PlayerInitService;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequest;
 import com.cosmic.scavengers.gameplay.queue.meta.IGameplayRequestHandler;
 import com.cosmic.scavengers.gameplay.queue.requests.GetWorldDataRequest;
+import com.cosmic.scavengers.networking.queue.NetworkingResponseQueue;
+import com.cosmic.scavengers.networking.queue.responses.GetWorldDataResponse;
+import com.cosmicscavengers.networking.protobuf.worlddata.WorldDataOuterClass.WorldData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class GetWorldDataRequestHandler implements IGameplayRequestHandler<GetWorldDataRequest> {
 	private static final Logger log = LoggerFactory.getLogger(GetWorldDataRequestHandler.class);
-	
+
 	private final DatabaseExecutor dbExecutor;
-	private final PlayerInitService playerInitService;	
-	
-	public GetWorldDataRequestHandler(
-			DatabaseExecutor dbExecutor,
-			PlayerInitService playerInitService
-			) {
+	private final PlayerInitService playerInitService;
+	private final NetworkingResponseQueue responseQueue;
+	private final ObjectMapper objectMapper;
+
+	public GetWorldDataRequestHandler(DatabaseExecutor dbExecutor, PlayerInitService playerInitService,
+			NetworkingResponseQueue responseQueue, ObjectMapper objectMapper) {
 		this.dbExecutor = dbExecutor;
 		this.playerInitService = playerInitService;
+		this.responseQueue = responseQueue;
+		this.objectMapper = objectMapper;
 	}
-	
+
 	@Override
 	public Class<GetWorldDataRequest> getSupportedRequestType() {
 		return GetWorldDataRequest.class;
@@ -36,19 +42,24 @@ public class GetWorldDataRequestHandler implements IGameplayRequestHandler<GetWo
 	}
 
 	@Override
-    public void handle(GetWorldDataRequest request) {
-		log.info("Handling GetWorldDataRequest for player ID: {}", request.playerId());
-		
+	public void handle(GetWorldDataRequest request) {
+		long playerId = request.playerId();
+		log.info("Handling GetWorldDataRequest for player ID: {}", playerId);
+
 		dbExecutor.execute(() -> {
 			try {
-				final var worldData = playerInitService.getCurrentWorldDataByPlayerId(request.playerId());
-				if (worldData == null) { // ASK: Should this be null or should it throw an exception if not found?
-					log.error("No world data found for playerId '{}'", request.playerId());
-					return;
-				}
-				log.info("Successfully fetched world data for player ID: {}", request.playerId());
+				final var worldDefinition = playerInitService.getCurrentWorldDataByPlayerId(playerId);
+
+				String configJson = objectMapper.writeValueAsString(worldDefinition.getConfig());
+
+				WorldData protoMessage = WorldData.newBuilder()
+						.setId(worldDefinition.getId())
+						.setConfigJson(configJson).build();
+
+				responseQueue.submit(new GetWorldDataResponse(playerId, protoMessage));
+				log.debug("Submitted GetWorldDataResponse for Player ID: '{}'", playerId);
 			} catch (Exception e) {
-				log.error("Error fetching world data for player ID {}: {}", request.playerId(), e.getMessage(), e);
+				log.error("Error fetching world data for player ID {}: {}", playerId, e.getMessage(), e);
 			}
 		});
 	}

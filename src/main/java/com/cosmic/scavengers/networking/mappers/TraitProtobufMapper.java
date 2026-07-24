@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import com.cosmic.scavengers.networking.proto.traits.TraitInstanceProto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.protobuf.Any;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
@@ -34,8 +33,7 @@ public class TraitProtobufMapper {
 		// They are identical, but in this way the correct one is always used.
 		this.mapper = mapper
 				.copy()
-				.registerModule(new ProtobufModule())
-				.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+				.registerModule(new ProtobufModule())				
 				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 

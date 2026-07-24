@@ -2,8 +2,6 @@
 
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
-
 option java_package = "com.cosmicscavengers.networking.protobuf.worlddata";
 option csharp_namespace = "CosmicScavengers.Networking.Protobuf.WorldData";
 
@@ -14,15 +12,6 @@ message WorldData {
   // Database primary key ID
   int64 id = 1;
 
-  // Name of the world
-  string name = 2;
-
   // Raw JSON payload containing the world configuration.
-  string config_json = 3;
-
-  // Creation timestamp
-  google.protobuf.Timestamp created_at = 4;
-
-  // Last update timestamp
-  google.protobuf.Timestamp updated_at = 5;
+  string config_json = 2;
 }
