@@ -1,6 +1,6 @@
 main_base:
-  base_health: 10000
-  is_static_default: true
-  behavior_configs:
+  baseHealth: 10000
+  isStaticDefault: true
+  behaviorConfigs:
     traits:
       selectable:

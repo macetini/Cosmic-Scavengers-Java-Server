@@ -1,9 +1,9 @@
 main_unit:
-  base_health: 500
-  is_static_default: false
-  behavior_configs:
+  baseHealth: 500
+  isStaticDefault: false
+  behaviorConfigs:
     traits:
       selectable:      
       movable:
-        movement_speed: 150000
-        rotation_speed: 120000
+        movementSpeed: 150000
+        rotationSpeed: 120000

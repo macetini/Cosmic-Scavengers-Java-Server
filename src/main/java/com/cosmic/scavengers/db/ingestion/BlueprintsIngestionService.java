@@ -66,8 +66,7 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 	}
 	
 	private Map<String, Object> processBehaviorConfigs(String sanitizedId, Map<String, Object> properties) {
-		final Map<?, ?> entityBehaviorConfigs = 
-		        (Map<?, ?>) properties.getOrDefault(BlueprintsConf.BEHAVIOR_CONFIGS.key(), Map.of());
+		final Map<?, ?> entityBehaviorConfigs = resolveBehaviorConfigs(properties);
 								
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> entityTraitDefinitions = 
@@ -90,6 +89,20 @@ public class BlueprintsIngestionService extends AbstractYamlIngester {
 		}
 		
 		return newConfigs;
+	}
+
+	private Map<?, ?> resolveBehaviorConfigs(Map<String, Object> properties) {
+		Object behaviorConfigs = properties.get("behaviorConfigs");
+		if (behaviorConfigs instanceof Map<?, ?> map) {
+			return map;
+		}
+
+		Object legacyBehaviorConfigs = properties.get(BlueprintsConf.BEHAVIOR_CONFIGS.key());
+		if (legacyBehaviorConfigs instanceof Map<?, ?> map) {
+			return map;
+		}
+
+		return Map.of();
 	}
 	
 	private Map<String, Map<?, ?>> extractEntityTraitOverrides(String blueprintId, Map<String, Object> entityTraitDefinitions) {
