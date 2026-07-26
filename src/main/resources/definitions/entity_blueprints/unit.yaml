@@ -1,4 +1,4 @@
-main_unit:
+mainUnit:
   baseHealth: 500
   isStaticDefault: false
   behaviorConfigs:

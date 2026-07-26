@@ -1,4 +1,4 @@
-main_base:
+mainBase:
   baseHealth: 10000
   isStaticDefault: true
   behaviorConfigs:
